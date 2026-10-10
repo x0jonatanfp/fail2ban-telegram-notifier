@@ -1,0 +1,36 @@
+# Unidad systemd de EJEMPLO (genérica, sin datos privados).
+#
+# Requisitos previos:
+#   1. Construir el artefacto:            pnpm install && pnpm build
+#   2. Copiar el proyecto a /opt/fail2ban-telegram-notifier (o donde prefieras,
+#      y ajusta WorkingDirectory/ExecStart).
+#   3. Crear /etc/fail2ban-telegram-notifier.env con tu configuración (a partir
+#      de .env.example). PROTÉGELO (chmod 600) porque contiene el token.
+#   4. Copiar esta unidad como /etc/systemd/system/fail2ban-telegram-notifier.service
+#      y sustituir YOUR_USER por tu usuario.
+#
+# NOTA: si prefieres inyectar secretos con un gestor propio (por ejemplo un
+# lanzador que exporte las variables antes de arrancar), sustituye
+# EnvironmentFile por tu mecanismo. Lo importante es que el proceso reciba las
+# variables de entorno descritas en .env.example.
+
+[Unit]
+Description=fail2ban → Telegram notifier
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/opt/fail2ban-telegram-notifier
+EnvironmentFile=/etc/fail2ban-telegram-notifier.env
+ExecStart=/usr/bin/node /opt/fail2ban-telegram-notifier/dist/index.js
+Restart=always
+RestartSec=5
+UMask=0077
+# Log a stdout/stderr: systemd lo recoge en el journal.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
