@@ -1,0 +1,63 @@
+{
+  "name": "fail2ban-telegram-notifier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Get fail2ban bans and unbans in Telegram in real time (Bot API or a local tg-gateway). Zero runtime dependencies.",
+  "keywords": [
+    "fail2ban",
+    "telegram",
+    "notifier",
+    "notifications",
+    "ban",
+    "unban",
+    "security",
+    "bot",
+    "typescript",
+    "hexagonal",
+    "systemd"
+  ],
+  "license": "MIT",
+  "author": "x0-jonatanfp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier.git"
+  },
+  "homepage": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier#readme",
+  "bugs": {
+    "url": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier/issues"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "type": "module",
+  "files": [
+    "dist/",
+    "src/",
+    "deploy/",
+    ".env.example",
+    "README.md",
+    "README.es.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "node --watch --experimental-transform-types --disable-warning=ExperimentalWarning src/index.ts",
+    "start": "node --experimental-transform-types --disable-warning=ExperimentalWarning src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",
+    "serve": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^4.1.9"
+  }
+}

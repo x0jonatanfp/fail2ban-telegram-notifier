@@ -1,0 +1,10 @@
+# Configuración de pnpm (v11+).
+#
+# `allowBuilds` declara explícitamente qué dependencias pueden ejecutar scripts
+# de instalación. Se DENIEGA el de `esbuild` a propósito: en pnpm no hace falta
+# (resuelve su binario nativo vía el paquete opcional `@esbuild/<plataforma>`) y
+# su `postinstall` de respaldo llega a sobrescribir el lanzador `bin/esbuild`
+# con un binario crudo, rompiendo el CLI. Declararlo como `false` además evita
+# el error `ERR_PNPM_IGNORED_BUILDS` de pnpm v11.
+allowBuilds:
+  esbuild: false

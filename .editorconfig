@@ -1,0 +1,21 @@
+# EditorConfig — https://editorconfig.org
+# Unifica el estilo básico entre editores. El proyecto no usa Prettier por
+# decisión (ver docs/PLAN.md §4): ESLint cubre el estilo del código.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{yaml,yml}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab

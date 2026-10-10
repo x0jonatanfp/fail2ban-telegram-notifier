@@ -1,0 +1,25 @@
+# Secretos y configuración local (NUNCA subir un .env real).
+# Sí se sube .env.example (plantilla sin datos).
+.env
+.env.local
+
+# Dependencias y artefactos de build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Datos del contador (backend 'file')
+data/
+
+# Informes de cobertura
+coverage/
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Editores / sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
