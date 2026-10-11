@@ -26,12 +26,16 @@ import { HandleCommandUseCase } from "./application/handle-command.ts";
 import { DailyResetScheduler } from "./application/daily-reset.ts";
 import { errText } from "./application/error-text.ts";
 
-/** Comandos y datos de callback que se registran en tg-gateway. */
+/** Comandos y datos de callback que se registran en tg-gateway.
+ *
+ * Es el mismo conjunto que registraba el bot original y NO incluye /start ni
+ * /help: en el gateway el registro es por coincidencia exacta y esos comandos
+ * pueden pertenecer ya a otro servicio (p. ej. un agente con __default__);
+ * registrarlos aquí se los robaría. En transporte `direct` sí se atienden,
+ * porque los gestiona el poller del propio bot sin gateway de por medio. */
 export const GATEWAY_COMMANDS = [
   "/f2b",
   "/chat_id",
-  "/start",
-  "/help",
   "show_counter",
   "not_touch",
 ] as const;
