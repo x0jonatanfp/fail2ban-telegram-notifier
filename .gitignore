@@ -25,4 +25,4 @@ pnpm-debug.log*
 Thumbs.db
 
 # Copia congelada del bot Python original (solo local, no versionar)
-old.tar.gz
+old/
