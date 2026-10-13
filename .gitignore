@@ -23,6 +23,7 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+.freebuff
 
 # Copia congelada del bot Python original (solo local, no versionar)
 old/
