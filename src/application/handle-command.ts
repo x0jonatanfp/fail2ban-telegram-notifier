@@ -11,6 +11,7 @@
 import type { IncomingUpdate } from "../domain/entities/incoming-update.ts";
 import type { NotifierPort } from "../domain/ports/notifier.ts";
 import type { LoggerPort } from "../domain/ports/logger.ts";
+import type { InlineKeyboardMarkup } from "../domain/entities/telegram-message.ts";
 import type { MessageTemplates } from "../domain/services/message-format.ts";
 import type { ShowCounterUseCase } from "./show-counter.ts";
 import type { ResetCounterUseCase } from "./reset-counter.ts";
@@ -71,14 +72,13 @@ export class HandleCommandUseCase {
       return;
     }
     if (text.startsWith("/chat_id")) {
-      await this.deps.notifier.sendMessage(
-        this.deps.chatId,
+      await this.sendSelfDeleting(
+        update,
         this.deps.messages.chatIds({
           ...(update.userId !== undefined ? { userId: update.userId } : {}),
           chatId: update.chatId,
           ...(update.threadId !== undefined ? { threadId: update.threadId } : {}),
         }),
-        this.sendOptions(),
       );
       return;
     }
@@ -100,11 +100,22 @@ export class HandleCommandUseCase {
   }
 
   private async sendConfig(update: IncomingUpdate): Promise<void> {
-    const result = await this.deps.notifier.sendMessage(
-      this.deps.chatId,
-      this.deps.messages.configTitle(),
-      { replyMarkup: this.deps.messages.configKeyboard(), ...this.sendOptions() },
-    );
+    await this.sendSelfDeleting(update, this.deps.messages.configTitle(), {
+      replyMarkup: this.deps.messages.configKeyboard(),
+    });
+  }
+
+  /** Responde y programa el autoborrado del comando (mensaje del usuario a 6 s,
+   * respuesta del bot a 12 s), igual que `/f2b`. */
+  private async sendSelfDeleting(
+    update: IncomingUpdate,
+    text: string,
+    extra: { replyMarkup?: InlineKeyboardMarkup } = {},
+  ): Promise<void> {
+    const result = await this.deps.notifier.sendMessage(this.deps.chatId, text, {
+      ...extra,
+      ...this.sendOptions(),
+    });
 
     // Se programa el borrado SIN bloquear la respuesta al update (el original
     // esperaba 12 s dentro del handler, lo que podía agotar el timeout de 10 s

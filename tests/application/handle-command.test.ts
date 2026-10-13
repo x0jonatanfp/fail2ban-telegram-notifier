@@ -96,17 +96,22 @@ describe("HandleCommandUseCase", () => {
     expect(ctx.notifier.sent[0]?.text).toContain("Configuración F2B");
   });
 
-  it("/chat_id envía los ids (sin borrado)", async () => {
+  it("/chat_id envía los ids y programa el mismo autoborrado que /f2b", async () => {
     await ctx.useCase.handle(
-      messageUpdate("/chat_id", { userId: 42, chatId: "CHAT", threadId: 7 }),
+      messageUpdate("/chat_id", { messageId: 77, userId: 42, chatId: "CHAT", threadId: 7 }),
     );
+    await flush();
     expect(ctx.notifier.sent[0]?.text).toBe(
       "👤 <b>Tu User ID:</b> <span class='tg-spoiler'>42</span>\n" +
         "💬 <b>Chat/Grupo ID:</b> <span class='tg-spoiler'>CHAT</span>" +
         "\n📂 <b>ID del Tema:</b> <span class='tg-spoiler'>7</span>\n" +
         "🔍 <b>¡Guárdalo de forma segura!</b> 🔒",
     );
-    expect(ctx.notifier.deleted).toHaveLength(0);
+    expect(ctx.delays).toEqual([6000, 12000]);
+    expect(ctx.notifier.deleted).toEqual([
+      { chatId: "CHAT", messageId: 77 },
+      { chatId: "CHAT", messageId: 1000 },
+    ]);
   });
 
   it("/start y /help responden (mejora: el original no los enviaba)", async () => {
