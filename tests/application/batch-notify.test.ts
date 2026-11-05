@@ -53,9 +53,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
 
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(1);
-    // Sin `start()`, la cobertura empieza con el primer evento (14:23) y el
-    // flush parcial cubre hasta `now()`: rango veraz, no ventana alineada.
-    expect(ctx.notifier.sent[0]?.text).toBe("📊 Resumen · 🔒 2 bloqueos (sshd 2)");
+    expect(ctx.notifier.sent[0]?.text).toBe("📊 Última hora · 🔒 2 bloqueos (sshd 2)");
     expect(ctx.notifier.sent[0]?.text).not.toContain("\n");
   });
 
@@ -88,7 +86,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("9.9.9.9", "apache") });
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(2);
-    expect(ctx.notifier.sent[1]?.text).toBe("📊 Resumen · 🔒 1 bloqueo (apache 1)");
+    expect(ctx.notifier.sent[1]?.text).toBe("📊 Última hora · 🔒 1 bloqueo (apache 1)");
     // El contador suma ambos (1 instantáneo + 1 del lote).
     expect(ctx.counterStore.state.daily).toBe(2);
   });
@@ -185,8 +183,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.timers.length).toBeGreaterThanOrEqual(2);
     });
-    // Arranque a las 14:23: el primer resumen cubre 14:23–15:00 (rango).
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Última hora");
     ctx.useCase.stop();
   });
 
@@ -271,7 +268,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     ctx.useCase.stop();
   });
 
-  it("(i) timer a las :00 tras arranque a las :00 → Última hora", async () => {
+  it("el resumen del timer lleva la cabecera Última hora", async () => {
     let current = new Date(2026, 9, 10, 10, 0, 0);
     const ctx = buildBatch({ now: () => current });
     ctx.useCase.start();
@@ -286,34 +283,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     ctx.useCase.stop();
   });
 
-  it("(ii) arranque a mitad de ventana → primer resumen con rango", async () => {
-    let current = new Date(2026, 9, 10, 10, 20, 0);
-    const ctx = buildBatch({ now: () => current });
-    ctx.useCase.start();
-    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
-
-    current = new Date(2026, 9, 10, 11, 0, 0);
-    ctx.timers[0]?.callback();
-    await vi.waitFor(() => {
-      expect(ctx.notifier.sent).toHaveLength(1);
-    });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
-    ctx.useCase.stop();
-  });
-
-  it("(iii) apagado a mitad de ventana → rango hasta now", async () => {
-    let current = new Date(2026, 9, 10, 10, 0, 0);
-    const ctx = buildBatch({ now: () => current });
-    ctx.useCase.start();
-    current = new Date(2026, 9, 10, 10, 20, 0);
-    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
-    await ctx.useCase.flush();
-    expect(ctx.notifier.sent).toHaveLength(1);
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
-    ctx.useCase.stop();
-  });
-
-  it("(iv) fallo de envío: coveredFrom no avanza y el reintento cubre ambas ventanas", async () => {
+  it("(iv) fallo de envío: el reintento de la ventana siguiente conserva los eventos", async () => {
     let current = new Date(2026, 9, 10, 10, 0, 0);
     const ctx = buildBatch({ now: () => current });
     ctx.useCase.start();
@@ -342,36 +312,12 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.notifier.sent).toHaveLength(1);
     });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Última hora");
     expect(ctx.counterStore.state.daily).toBe(1);
     ctx.useCase.stop();
   });
 
-  it("(v) BATCH_MAX_EVENTS → rango parcial y el siguiente empieza donde acabó", async () => {
-    let current = new Date(2026, 9, 10, 10, 0, 0);
-    const ctx = buildBatch({ now: () => current, batchMaxEvents: 2 });
-    ctx.useCase.start();
-    current = new Date(2026, 9, 10, 10, 5, 0);
-    await ctx.useCase.handle({ kind: "line", raw: banLine("1.1.1.1") });
-    current = new Date(2026, 9, 10, 10, 23, 0);
-    await ctx.useCase.handle({ kind: "line", raw: banLine("2.2.2.2") });
-    await vi.waitFor(() => {
-      expect(ctx.notifier.sent).toHaveLength(1);
-    });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
-
-    current = new Date(2026, 9, 10, 10, 40, 0);
-    await ctx.useCase.handle({ kind: "line", raw: banLine("3.3.3.3") });
-    current = new Date(2026, 9, 10, 11, 0, 0);
-    ctx.timers[0]?.callback();
-    await vi.waitFor(() => {
-      expect(ctx.notifier.sent).toHaveLength(2);
-    });
-    expect(ctx.notifier.sent[1]?.text).toContain("📊 Resumen");
-    ctx.useCase.stop();
-  });
-
-  it("(vi) pre-reset de medianoche + timer simultáneos → un solo envío veraz", async () => {
+  it("(vi) pre-reset de medianoche + timer simultáneos → un solo envío", async () => {
     let current = new Date(2026, 9, 10, 23, 0, 0);
     const ctx = buildBatch({ now: () => current });
     ctx.useCase.start();
@@ -386,12 +332,11 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(ctx.notifier.sent).toHaveLength(1);
-    // Cobertura 23:00–00:00 exacta gane quien gane la carrera.
     expect(ctx.notifier.sent[0]?.text).toContain("📊 Última hora");
     ctx.useCase.stop();
   });
 
-  it("(vii) ventana vacía no envía y la cobertura avanza (no arrastra horas sin eventos)", async () => {
+  it("(vii) ventana vacía no envía nada", async () => {
     let current = new Date(2026, 9, 10, 10, 0, 0);
     const ctx = buildBatch({ now: () => current });
     ctx.useCase.start();
@@ -403,35 +348,10 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     });
     expect(ctx.notifier.sent).toHaveLength(0);
 
-    // La hora vacía ya está cubierta: el siguiente resumen parte de las 11:00.
     current = new Date(2026, 9, 10, 11, 30, 0);
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(1);
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
-    ctx.useCase.stop();
-  });
-
-  it("tras una hora vacía, la siguiente hora completa vuelve a titularse Última hora", async () => {
-    let current = new Date(2026, 9, 10, 10, 0, 0);
-    const ctx = buildBatch({ now: () => current });
-    ctx.useCase.start();
-
-    // 10:00–11:00 sin eventos.
-    current = new Date(2026, 9, 10, 11, 0, 0);
-    ctx.timers[0]?.callback();
-    await vi.waitFor(() => {
-      expect(ctx.timers.length).toBeGreaterThanOrEqual(2);
-    });
-
-    // 11:00–12:00 con un ban.
-    current = new Date(2026, 9, 10, 11, 20, 0);
-    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
-    current = new Date(2026, 9, 10, 12, 0, 0);
-    ctx.timers[ctx.timers.length - 1]?.callback();
-    await vi.waitFor(() => {
-      expect(ctx.notifier.sent).toHaveLength(1);
-    });
     expect(ctx.notifier.sent[0]?.text).toContain("📊 Última hora");
     ctx.useCase.stop();
   });

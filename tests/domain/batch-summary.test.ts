@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  batchTitleFor,
   formatBatchSummary,
   MAX_JAILS_SHOWN,
   TELEGRAM_MAX_MESSAGE_LEN,
@@ -11,16 +10,6 @@ import { getMessages } from "../../src/domain/services/message-format.ts";
 const es = getMessages("es");
 const en = getMessages("en");
 
-const win = (sh: number, eh: number): Pick<BatchSummaryData, "periodStart" | "periodEnd"> => ({
-  periodStart: new Date(2026, 9, 10, sh, 0, 0),
-  periodEnd: new Date(2026, 9, 10, eh, 0, 0),
-});
-
-const part = (sh: number, sm: number, eh: number, em: number): Pick<BatchSummaryData, "periodStart" | "periodEnd"> => ({
-  periodStart: new Date(2026, 9, 10, sh, sm, 0),
-  periodEnd: new Date(2026, 9, 10, eh, em, 0),
-});
-
 const bans = (jail: string, n: number, base = "1.2.3"): BatchSummaryData["bans"] =>
   Array.from({ length: n }, (_, i) => ({ jail, ip: `${base}.${i + 1}` }));
 
@@ -28,7 +17,6 @@ describe("formatBatchSummary", () => {
   it("ejemplo exacto de la especificación (es)", () => {
     const texts = formatBatchSummary(
       {
-        ...win(3, 4),
         bans: bans("nginx-botsearch", 2, "10.0.0"),
         unbans: [{ jail: "sshd", ip: "9.9.9.9" }],
         showIps: false,
@@ -41,44 +29,17 @@ describe("formatBatchSummary", () => {
     ]);
   });
 
-  it("periodo parcial usa el rango sin la palabra Resumen (es/en)", () => {
+  it("cabecera en inglés", () => {
     const texts = formatBatchSummary(
-      {
-        ...part(10, 20, 11, 0),
-        bans: bans("sshd", 1),
-        unbans: [],
-        showIps: false,
-        unbanMode: "count",
-      },
-      es,
-    );
-    expect(texts).toEqual(["📊 Resumen · 🔒 1 bloqueo (sshd 1)"]);
-
-    const textsEn = formatBatchSummary(
-      {
-        ...part(10, 20, 11, 0),
-        bans: bans("sshd", 1),
-        unbans: [],
-        showIps: false,
-        unbanMode: "count",
-      },
+      { bans: bans("sshd", 1), unbans: [], showIps: false, unbanMode: "count" },
       en,
     );
-    expect(textsEn).toEqual(["📊 Summary · 🔒 1 ban (sshd 1)"]);
-  });
-
-  it("batchTitleFor: 3600000 ms exactos es hora completa; un ms más o menos, Resumen", () => {
-    const start = new Date(2026, 9, 10, 10, 0, 0);
-    expect(batchTitleFor(start, new Date(start.getTime() + 3600000), es)).toBe("📊 Última hora");
-    expect(batchTitleFor(start, new Date(start.getTime() + 3600000), en)).toBe("📊 Last hour");
-    expect(batchTitleFor(start, new Date(start.getTime() + 3600001), es)).toBe("📊 Resumen");
-    expect(batchTitleFor(start, new Date(start.getTime() + 3599999), es)).toBe("📊 Resumen");
+    expect(texts).toEqual(["📊 Last hour · 🔒 1 ban (sshd 1)"]);
   });
 
   it("una sola línea: ningún mensaje contiene \\n", () => {
     const texts = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: [...bans("postfix", 3), ...bans("sshd", 1)],
         unbans: [{ jail: "x", ip: "1.1.1.1" }],
         showIps: true,
@@ -95,14 +56,13 @@ describe("formatBatchSummary", () => {
 
   it("singular/plural en es y en", () => {
     const one = formatBatchSummary(
-      { ...win(14, 15), bans: bans("sshd", 1), unbans: [], showIps: false, unbanMode: "count" },
+      { bans: bans("sshd", 1), unbans: [], showIps: false, unbanMode: "count" },
       es,
     );
     expect(one).toEqual(["📊 Última hora · 🔒 1 bloqueo (sshd 1)"]);
 
     const oneEn = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: bans("sshd", 1),
         unbans: [{ jail: "sshd", ip: "1.1.1.1" }],
         showIps: false,
@@ -113,7 +73,7 @@ describe("formatBatchSummary", () => {
     expect(oneEn).toEqual(["📊 Last hour · 🔒 1 ban (sshd 1) · 🌐 1 unban"]);
 
     const manyEn = formatBatchSummary(
-      { ...win(14, 15), bans: bans("sshd", 62), unbans: bans("x", 58, "8.8.8"), showIps: false, unbanMode: "count" },
+      { bans: bans("sshd", 62), unbans: bans("x", 58, "8.8.8"), showIps: false, unbanMode: "count" },
       en,
     );
     expect(manyEn).toEqual(["📊 Last hour · 🔒 62 bans (sshd 62) · 🌐 58 unbans"]);
@@ -122,7 +82,6 @@ describe("formatBatchSummary", () => {
   it("ordena jails por recuento (empates por nombre)", () => {
     const texts = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: [...bans("b-jail", 2), ...bans("a-jail", 2), ...bans("top", 5)],
         unbans: [],
         showIps: false,
@@ -139,7 +98,7 @@ describe("formatBatchSummary", () => {
       ip: `10.0.0.${i + 1}`,
     }));
     const texts = formatBatchSummary(
-      { ...win(14, 15), bans: many, unbans: [], showIps: false, unbanMode: "count" },
+      { bans: many, unbans: [], showIps: false, unbanMode: "count" },
       es,
     );
     expect(texts).toHaveLength(1);
@@ -147,7 +106,7 @@ describe("formatBatchSummary", () => {
     expect(texts[0]).not.toContain("jail-08");
 
     const textsEn = formatBatchSummary(
-      { ...win(14, 15), bans: many, unbans: [], showIps: false, unbanMode: "count" },
+      { bans: many, unbans: [], showIps: false, unbanMode: "count" },
       en,
     );
     expect(textsEn[0]).toContain("other 3");
@@ -156,7 +115,6 @@ describe("formatBatchSummary", () => {
   it("con IPs añade un bloque por jail con spoilers", () => {
     const texts = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: [
           { jail: "postfix", ip: "1.2.3.4" },
           { jail: "postfix", ip: "5.6.7.8" },
@@ -176,7 +134,6 @@ describe("formatBatchSummary", () => {
   it("NOTIFY_UNBANS=off omite los desbloqueos; solo-unbans no envía nada", () => {
     const mixed = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: bans("sshd", 1),
         unbans: [{ jail: "sshd", ip: "9.9.9.9" }],
         showIps: false,
@@ -188,7 +145,6 @@ describe("formatBatchSummary", () => {
 
     const onlyUnbans = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: [],
         unbans: [{ jail: "sshd", ip: "9.9.9.9" }],
         showIps: false,
@@ -202,7 +158,6 @@ describe("formatBatchSummary", () => {
   it("solo-unbans omite el segmento de bloqueos; solo-bans omite el de desbloqueos", () => {
     const onlyUnbans = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: [],
         unbans: [{ jail: "sshd", ip: "9.9.9.9" }, { jail: "sshd", ip: "9.9.9.10" }],
         showIps: false,
@@ -213,7 +168,7 @@ describe("formatBatchSummary", () => {
     expect(onlyUnbans).toEqual(["📊 Última hora · 🌐 2 desbloqueos"]);
 
     const onlyBans = formatBatchSummary(
-      { ...win(14, 15), bans: bans("sshd", 2), unbans: [], showIps: false, unbanMode: "count" },
+      { bans: bans("sshd", 2), unbans: [], showIps: false, unbanMode: "count" },
       es,
     );
     expect(onlyBans).toEqual(["📊 Última hora · 🔒 2 bloqueos (sshd 2)"]);
@@ -221,14 +176,13 @@ describe("formatBatchSummary", () => {
 
   it("ventana vacía no envía nada", () => {
     expect(
-      formatBatchSummary({ ...win(14, 15), bans: [], unbans: [], showIps: false, unbanMode: "count" }, es),
+      formatBatchSummary({ bans: [], unbans: [], showIps: false, unbanMode: "count" }, es),
     ).toEqual([]);
   });
 
   it("unbanMode=list con IPs añade las desbloqueadas", () => {
     const texts = formatBatchSummary(
       {
-        ...win(14, 15),
         bans: bans("sshd", 1),
         unbans: [{ jail: "postfix", ip: "7.7.7.7" }],
         showIps: true,
@@ -244,7 +198,7 @@ describe("formatBatchSummary", () => {
   it("trocea a 4096 sin cortar etiquetas ni spoilers", () => {
     const many = Array.from({ length: 300 }, (_, i) => ({ jail: "postfix", ip: `10.9.9.${i + 1}` }));
     const texts = formatBatchSummary(
-      { ...win(14, 15), bans: many, unbans: [], showIps: true, unbanMode: "count" },
+      { bans: many, unbans: [], showIps: true, unbanMode: "count" },
       es,
     );
     expect(texts.length).toBeGreaterThan(1);
