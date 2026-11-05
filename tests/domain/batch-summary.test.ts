@@ -52,7 +52,7 @@ describe("formatBatchSummary", () => {
       },
       es,
     );
-    expect(texts).toEqual(["📊 10:20–11:00 · 🔒 1 bloqueo (sshd 1)"]);
+    expect(texts).toEqual(["📊 Resumen · 🔒 1 bloqueo (sshd 1)"]);
 
     const textsEn = formatBatchSummary(
       {
@@ -64,15 +64,15 @@ describe("formatBatchSummary", () => {
       },
       en,
     );
-    expect(textsEn).toEqual(["📊 10:20–11:00 · 🔒 1 ban (sshd 1)"]);
+    expect(textsEn).toEqual(["📊 Summary · 🔒 1 ban (sshd 1)"]);
   });
 
-  it("batchTitleFor: 3600000 ms exactos es hora completa; un ms más o menos, rango", () => {
+  it("batchTitleFor: 3600000 ms exactos es hora completa; un ms más o menos, Resumen", () => {
     const start = new Date(2026, 9, 10, 10, 0, 0);
     expect(batchTitleFor(start, new Date(start.getTime() + 3600000), es)).toBe("📊 Última hora");
     expect(batchTitleFor(start, new Date(start.getTime() + 3600000), en)).toBe("📊 Last hour");
-    expect(batchTitleFor(start, new Date(start.getTime() + 3600001), es)).toBe("📊 10:00–11:00");
-    expect(batchTitleFor(start, new Date(start.getTime() + 3599999), es)).toBe("📊 10:00–10:59");
+    expect(batchTitleFor(start, new Date(start.getTime() + 3600001), es)).toBe("📊 Resumen");
+    expect(batchTitleFor(start, new Date(start.getTime() + 3599999), es)).toBe("📊 Resumen");
   });
 
   it("una sola línea: ningún mensaje contiene \\n", () => {

@@ -5,7 +5,6 @@
 // por unidades de código para un orden determinista). Más de 8 jails ⇒ el
 // resto se pliega en `otras N` / `other N` (N = suma de bans plegados).
 import type { MessageTemplates } from "./message-format.ts";
-import { formatLocalHourMinute } from "./format-time.ts";
 
 export interface BatchRecordedEvent {
   ip: string;
@@ -80,17 +79,15 @@ export const FULL_HOUR_MS = 3600000;
 
 /**
  * Cabecera del resumen: "Última hora" si el periodo cubre exactamente 60
- * minutos, rango `HH:MM–HH:MM` en caso contrario (el 📊 ya indica que es
- * un resumen, sin la palabra "Resumen").
+ * minutos y "Resumen" en cualquier otro caso. Nunca lleva horas (decisión del
+ * usuario): el periodo exacto solo sirve para decidir cuál de las dos usar,
+ * de modo que "Última hora" nunca se rotula sobre un periodo que no lo es.
  */
 export function batchTitleFor(periodStart: Date, periodEnd: Date, messages: MessageTemplates): string {
   if (periodEnd.getTime() - periodStart.getTime() === FULL_HOUR_MS) {
     return messages.batchTitleLastHour();
   }
-  return messages.batchTitle(
-    formatLocalHourMinute(periodStart),
-    formatLocalHourMinute(periodEnd),
-  );
+  return messages.batchTitle();
 }
 
 /**

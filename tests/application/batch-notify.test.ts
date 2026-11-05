@@ -55,7 +55,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     expect(ctx.notifier.sent).toHaveLength(1);
     // Sin `start()`, la cobertura empieza con el primer evento (14:23) y el
     // flush parcial cubre hasta `now()`: rango veraz, no ventana alineada.
-    expect(ctx.notifier.sent[0]?.text).toBe("📊 14:23–14:23 · 🔒 2 bloqueos (sshd 2)");
+    expect(ctx.notifier.sent[0]?.text).toBe("📊 Resumen · 🔒 2 bloqueos (sshd 2)");
     expect(ctx.notifier.sent[0]?.text).not.toContain("\n");
   });
 
@@ -88,7 +88,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("9.9.9.9", "apache") });
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(2);
-    expect(ctx.notifier.sent[1]?.text).toBe("📊 14:23–14:23 · 🔒 1 bloqueo (apache 1)");
+    expect(ctx.notifier.sent[1]?.text).toBe("📊 Resumen · 🔒 1 bloqueo (apache 1)");
     // El contador suma ambos (1 instantáneo + 1 del lote).
     expect(ctx.counterStore.state.daily).toBe(2);
   });
@@ -186,7 +186,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
       expect(ctx.timers.length).toBeGreaterThanOrEqual(2);
     });
     // Arranque a las 14:23: el primer resumen cubre 14:23–15:00 (rango).
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 14:23–15:00");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
     ctx.useCase.stop();
   });
 
@@ -297,7 +297,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.notifier.sent).toHaveLength(1);
     });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 10:20–11:00");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
     ctx.useCase.stop();
   });
 
@@ -309,7 +309,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(1);
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 10:00–10:20");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
     ctx.useCase.stop();
   });
 
@@ -342,7 +342,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.notifier.sent).toHaveLength(1);
     });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 10:00–12:00");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
     expect(ctx.counterStore.state.daily).toBe(1);
     ctx.useCase.stop();
   });
@@ -358,7 +358,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.notifier.sent).toHaveLength(1);
     });
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 10:00–10:23");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
 
     current = new Date(2026, 9, 10, 10, 40, 0);
     await ctx.useCase.handle({ kind: "line", raw: banLine("3.3.3.3") });
@@ -367,7 +367,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await vi.waitFor(() => {
       expect(ctx.notifier.sent).toHaveLength(2);
     });
-    expect(ctx.notifier.sent[1]?.text).toContain("📊 10:23–11:00");
+    expect(ctx.notifier.sent[1]?.text).toContain("📊 Resumen");
     ctx.useCase.stop();
   });
 
@@ -408,7 +408,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
     await ctx.useCase.flush();
     expect(ctx.notifier.sent).toHaveLength(1);
-    expect(ctx.notifier.sent[0]?.text).toContain("📊 11:00–11:30");
+    expect(ctx.notifier.sent[0]?.text).toContain("📊 Resumen");
     ctx.useCase.stop();
   });
 

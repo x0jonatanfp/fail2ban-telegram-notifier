@@ -40,8 +40,8 @@ export interface MessageTemplates {
   chatIds(input: ChatIdInput): string;
   start(): string;
   help(): string;
-  /** Resumen batch: cabecera con el rango cubierto ("14:00–15:00"). */
-  batchTitle(start: string, end: string): string;
+  /** Resumen batch: cabecera cuando el periodo NO es una hora completa (sin horas). */
+  batchTitle(): string;
   /** Resumen batch: cabecera cuando el periodo cubre exactamente una hora. */
   batchTitleLastHour(): string;
   /** Segmento de bloqueos; `breakdown` vacío ⇒ sin paréntesis. */
@@ -131,7 +131,7 @@ const es: MessageTemplates = {
       `🔍 <b>¡Guárdalo de forma segura!</b> 🔒`
     );
   },
-  batchTitle: (start, end) => `📊 ${start}–${end}`,
+  batchTitle: () => "📊 Resumen",
   batchTitleLastHour: () => "📊 Última hora",
   batchBans: (count, breakdown) =>
     breakdown === ""
@@ -196,7 +196,7 @@ const en: MessageTemplates = {
       `🔍 <b>Keep it somewhere safe!</b> 🔒`
     );
   },
-  batchTitle: (start, end) => `📊 ${start}–${end}`,
+  batchTitle: () => "📊 Summary",
   batchTitleLastHour: () => "📊 Last hour",
   batchBans: (count, breakdown) =>
     breakdown === ""
