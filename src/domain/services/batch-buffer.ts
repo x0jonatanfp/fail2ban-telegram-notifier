@@ -56,6 +56,19 @@ export class BatchBuffer {
   clear(): void {
     this.bans.length = 0;
     this.unbans.length = 0;
+    this.dropped = 0;
+  }
+
+  /** Quita del buffer solo los N primeros de cada lista (los ya enviados).
+   *
+   * Porqué no se vacía entero: los eventos que llegan MIENTRAS se espera a
+   * Telegram deben conservarse para el siguiente resumen; vaciarlo todo los
+   * borraría sin enviarse ni contarse. Resetea `dropped` porque el aviso de
+   * "buffer lleno" ya se emitió en el flush que drena. */
+  drain(banCount: number, unbanCount: number): void {
+    this.bans.splice(0, banCount);
+    this.unbans.splice(0, unbanCount);
+    this.dropped = 0;
   }
 
   private enforceCap(): void {

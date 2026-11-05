@@ -165,6 +165,10 @@ export function createRuntime(config: AppConfig): Runtime {
     resetCounter,
     logger,
     now: () => new Date(),
+    // En batch vacía el resumen pendiente ANTES del reinicio para que los
+    // bans de la última hora cuenten en el día que les toca; en `instant`
+    // `flush()` es no-op y el flujo no cambia.
+    beforeReset: () => notifyEvents.flush(),
   });
 
   let started = false;

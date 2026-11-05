@@ -200,6 +200,78 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
     expect(ctx.notifier.sent).toHaveLength(1);
   });
 
+  it("los eventos que llegan durante el envío salen en el siguiente resumen (una vez cada uno)", async () => {
+    const ctx = buildBatch();
+    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
+
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let reached!: () => void;
+    const reachedGate = new Promise<void>((resolve) => {
+      reached = resolve;
+    });
+    const real = ctx.notifier.sendMessage.bind(ctx.notifier);
+    let first = true;
+    ctx.notifier.sendMessage = async (...args) => {
+      if (first) {
+        first = false;
+        reached();
+        await gate;
+      }
+      return real(...args);
+    };
+
+    const flushing = ctx.useCase.flush();
+    // Espera a que el envío esté pendiente y ENTONCES entra el ban.
+    await reachedGate;
+    await ctx.useCase.handle({ kind: "line", raw: banLine("5.6.7.8") });
+    release();
+    await flushing;
+
+    expect(ctx.notifier.sent).toHaveLength(1);
+    expect(ctx.notifier.sent[0]?.text).toContain("🔒 1 bloqueo");
+
+    await ctx.useCase.flush();
+    expect(ctx.notifier.sent).toHaveLength(2);
+    expect(ctx.notifier.sent[1]?.text).toContain("🔒 1 bloqueo");
+    // Cada ban contado exactamente una vez: dos saves, daily final 2.
+    expect(ctx.counterStore.saves).toHaveLength(2);
+    expect(ctx.counterStore.state.daily).toBe(2);
+  });
+
+  it("flushes concurrentes se serializan: ni duplican ni pierden", async () => {
+    const ctx = buildBatch();
+    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
+    await ctx.useCase.handle({ kind: "line", raw: banLine("5.6.7.8") });
+
+    await Promise.all([ctx.useCase.flush(), ctx.useCase.flush()]);
+
+    expect(ctx.notifier.sent).toHaveLength(1);
+    expect(ctx.notifier.sent[0]?.text).toContain("🔒 2 bloqueos");
+    expect(ctx.counterStore.saves).toHaveLength(1);
+    expect(ctx.counterStore.state.daily).toBe(2);
+  });
+
+  it("timer de ventana y flush externo a la vez envían el resumen una sola vez", async () => {
+    const ctx = buildBatch();
+    ctx.useCase.start();
+    await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });
+
+    ctx.timers[0]?.callback();
+    await ctx.useCase.flush();
+    await vi.waitFor(() => {
+      expect(ctx.timers.length).toBeGreaterThanOrEqual(2);
+    });
+    // Pequeña espera para que un eventual segundo envío duplicado aparezca.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(ctx.notifier.sent).toHaveLength(1);
+    expect(ctx.counterStore.saves).toHaveLength(1);
+    ctx.useCase.stop();
+  });
+
   it("pasa el threadId al resumen", async () => {
     const ctx = buildBatch({ threadId: 99 });
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4") });

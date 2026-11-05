@@ -19,6 +19,10 @@ export interface DailyResetDeps {
   resetCounter: ResetCounterUseCase;
   logger: LoggerPort;
   now: () => Date;
+  /** Gancho opcional que se espera ANTES del reinicio (p. ej. vaciar el lote
+   * batch para que el resumen 23:00–00:00 cuente antes del reset). Si falla,
+   * se registra y el reinicio se ejecuta igualmente. */
+  beforeReset?: () => Promise<void>;
   /** Temporizador inyectable para poder testear sin esperar. */
   setTimer?: (callback: () => void, ms: number) => { unref?: () => void };
   clearTimer?: (handle: { unref?: () => void }) => void;
@@ -58,6 +62,15 @@ export class DailyResetScheduler {
 
   private async run(): Promise<void> {
     try {
+      if (this.deps.beforeReset !== undefined) {
+        try {
+          await this.deps.beforeReset();
+        } catch (error) {
+          this.deps.logger.error("Error en el gancho previo al reinicio diario.", {
+            error: errText(error),
+          });
+        }
+      }
       await this.deps.resetCounter.execute();
       this.deps.logger.info("Reinicio diario ejecutado.");
     } catch (error) {

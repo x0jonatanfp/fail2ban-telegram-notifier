@@ -115,6 +115,93 @@ describe("DailyResetScheduler", () => {
     scheduler.stop();
   });
 
+  it("beforeReset se espera ANTES del reinicio (orden flush → contador → reset)", async () => {
+    const order: string[] = [];
+    const notifier = new FakeNotifier();
+    const counterStore = new InMemoryCounterStore({
+      daily: 5,
+      permanent: 0,
+      total: 10,
+      last: "08:00:00",
+    });
+    const resetCounter = new ResetCounterUseCase({
+      notifier,
+      counterStore,
+      messages: getMessages("es"),
+      logger: createTestLogger(),
+      chatId: "CHAT",
+      now: () => new Date(2026, 9, 11, 0, 0, 0),
+    });
+    const originalExecute = resetCounter.execute.bind(resetCounter);
+    resetCounter.execute = async (...args) => {
+      order.push("reset");
+      return originalExecute(...args);
+    };
+
+    const scheduled: Array<() => void> = [];
+    const scheduler = new DailyResetScheduler({
+      resetCounter,
+      logger: createTestLogger(),
+      now: () => new Date(2026, 9, 10, 23, 0, 0),
+      beforeReset: async () => {
+        order.push("flush");
+      },
+      setTimer: (callback) => {
+        scheduled.push(callback);
+        return { unref: () => undefined };
+      },
+    });
+
+    scheduler.start();
+    scheduled[0]?.();
+    await vi.waitFor(() => {
+      expect(counterStore.saves).toHaveLength(1);
+    });
+    expect(order).toEqual(["flush", "reset"]);
+    scheduler.stop();
+  });
+
+  it("si el gancho falla, se registra y el reinicio se ejecuta igualmente", async () => {
+    const logger = createTestLogger();
+    const counterStore = new InMemoryCounterStore({
+      daily: 5,
+      permanent: 0,
+      total: 10,
+      last: "08:00:00",
+    });
+    const resetCounter = new ResetCounterUseCase({
+      notifier: new FakeNotifier(),
+      counterStore,
+      messages: getMessages("es"),
+      logger: createTestLogger(),
+      chatId: "CHAT",
+      now: () => new Date(2026, 9, 11, 0, 0, 0),
+    });
+    const scheduled: Array<() => void> = [];
+    const scheduler = new DailyResetScheduler({
+      resetCounter,
+      logger,
+      now: () => new Date(2026, 9, 10, 23, 0, 0),
+      beforeReset: async () => {
+        throw new Error("flush roto");
+      },
+      setTimer: (callback) => {
+        scheduled.push(callback);
+        return { unref: () => undefined };
+      },
+    });
+
+    scheduler.start();
+    scheduled[0]?.();
+    await vi.waitFor(() => {
+      expect(counterStore.saves).toHaveLength(1);
+    });
+    expect(logger.messagesOf("error")).toContain(
+      "Error en el gancho previo al reinicio diario.",
+    );
+    scheduler.stop();
+  });
+
   it("stop sin nada programado no falla", () => {
     const resetCounter = new ResetCounterUseCase({
       notifier: new FakeNotifier(),
