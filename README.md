@@ -112,6 +112,17 @@ All configuration is done through environment variables (see [`.env.example`](.e
 | `F2B_SUPPRESS_SHUTDOWN_FLUSH` | `true` | Suppress the fake `Unban` flood emitted when fail2ban stops/restarts. |
 | `F2B_POLL_INTERVAL_MS` | `1000` | Log polling interval, in milliseconds. |
 
+### Batch summaries (optional)
+
+| Variable | Default | Description |
+|---|---|---|
+| `NOTIFY_MODE` | `instant` | `instant` (one message per event) or `batch` (one single-line summary per window). Invalid values fail fast. |
+| `BATCH_WINDOW_SEC` | `3600` | Summary window, in seconds. Windows align to the local clock (with 3600 on the hour). Must divide 86400. |
+| `BATCH_SHOW_IPS` | `false` | `true` adds the IPs (as spoilers) grouped by jail. |
+| `BATCH_MAX_EVENTS` | `0` | If > 0, the summary is sent early when the buffer reaches that many events. `0` = no cap. |
+| `NOTIFY_INSTANT_JAILS` | *(empty)* | Comma-separated jails whose bans skip the batch and are sent instantly. Those events are not counted in the summary. Batch mode only. |
+| `NOTIFY_UNBANS` | `count` | `count` (unbans counted), `off` (unbans omitted; a window with only unbans sends nothing) or `list` (like `count` plus, with `BATCH_SHOW_IPS=true`, the unbanned IPs). |
+
 ### Counter storage
 
 | Variable | Default | Description |
@@ -187,6 +198,21 @@ Resets happen automatically at local midnight and manually via the `/f2b` → **
 
 - **File backend (default):** a JSON file, written atomically. No database needed.
 - **Postgres backend (optional):** `COUNTER_BACKEND=postgres` reuses a legacy-compatible `f2b_stats` table. Install the optional driver with `pnpm add pg`; the module is imported dynamically so the default install never needs it.
+
+### Batch mode (periodic summary)
+
+With `NOTIFY_MODE=batch`, bans and unbans accumulate and one single-line summary per window is sent (blocks joined with `·`). Jails are ordered by count (descending, name on ties); beyond 8 jails the rest folds into `other N` (N = folded bans).
+
+```
+📊 Summary 14:00–15:00 · 🔒 62 bans (postfix 41, 2237 17, nginx-forbidden 4) · 🌐 58 unbans
+📊 Summary 03:00–04:00 · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
+```
+
+With `BATCH_SHOW_IPS=true` each jail gets its IPs as spoilers on the same line; over-long summaries split into several ≤ 4096-character single-line messages. A window with no (visible) events sends nothing; with `NOTIFY_UNBANS=off` the `🌐 …` segment is omitted. Jails in `NOTIFY_INSTANT_JAILS` skip the batch and keep the instant format (and are not counted in the summary). Log-rotation notices stay instant in both modes, and `F2B_IGNORE_JAILS` / `F2B_IGNORE_IPS` / `F2B_SUPPRESS_SHUTDOWN_FLUSH` apply before batching, as before.
+
+The counter is updated once per successfully sent summary with all its bans (same rule as instant: a failed send does not touch the counter). On send failure the batch is kept for the next window; the in-memory buffer is capped (oldest events dropped) so a sustained outage cannot grow without bound.
+
+> **Limitation:** the buffer lives in memory. A normal `SIGTERM` flushes it on shutdown, but a `kill -9` or power loss loses up to one window of events.
 
 ---
 

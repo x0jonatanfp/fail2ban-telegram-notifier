@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Nothing yet.
+- Optional `NOTIFY_MODE=batch`: accumulates bans/unbans and sends one single-line summary per aligned window (`BATCH_WINDOW_SEC`, must divide 86400), with `BATCH_SHOW_IPS`, `BATCH_MAX_EVENTS`, `NOTIFY_INSTANT_JAILS` and `NOTIFY_UNBANS` (`count`/`off`/`list`). Batch templates in `MessageTemplates` (es/en), counter updated once per successfully sent summary, failed sends retried next window with a capped in-memory buffer, shutdown flush on `SIGTERM`. Instant mode (default) unchanged.
 
 ## [1.0.0] - 2026-10-10
 

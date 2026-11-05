@@ -112,6 +112,17 @@ Toda la configuración se hace por variables de entorno (ver [`.env.example`](.e
 | `F2B_SUPPRESS_SHUTDOWN_FLUSH` | `true` | Suprime la avalancha de `Unban` falsos emitida al parar/reiniciar fail2ban. |
 | `F2B_POLL_INTERVAL_MS` | `1000` | Intervalo de sondeo del log, en milisegundos. |
 
+### Resúmenes por lote (opcional)
+
+| Variable | Por defecto | Descripción |
+|---|---|---|
+| `NOTIFY_MODE` | `instant` | `instant` (un mensaje por evento) o `batch` (un resumen de una sola línea por ventana). Un valor inválido falla al arrancar. |
+| `BATCH_WINDOW_SEC` | `3600` | Ventana del resumen, en segundos. Las ventanas se alinean al reloj local (con 3600 salen a las :00). Debe dividir a 86400. |
+| `BATCH_SHOW_IPS` | `false` | `true` añade las IPs (en spoiler) agrupadas por jail. |
+| `BATCH_MAX_EVENTS` | `0` | Si > 0, el resumen se envía antes de tiempo al alcanzar ese nº de eventos. `0` = sin tope. |
+| `NOTIFY_INSTANT_JAILS` | *(vacío)* | Jails separadas por coma cuyos bans saltan el lote y se envían al instante. Esos eventos NO se recuentan en el resumen. Solo en modo batch. |
+| `NOTIFY_UNBANS` | `count` | `count` (solo recuento), `off` (se omiten; si solo hubo unbans no se envía nada) o `list` (como `count` y, si `BATCH_SHOW_IPS=true`, añade también las IPs desbloqueadas). |
+
 ### Almacenamiento del contador
 
 | Variable | Por defecto | Descripción |
@@ -187,6 +198,21 @@ Los reinicios ocurren automáticamente a medianoche local y de forma manual con 
 
 - **Backend de fichero (por defecto):** un fichero JSON, escrito de forma atómica. No necesita base de datos.
 - **Backend Postgres (opcional):** `COUNTER_BACKEND=postgres` reutiliza una tabla `f2b_stats` compatible con la heredada. Instala el driver opcional con `pnpm add pg`; el módulo se importa dinámicamente, así que la instalación por defecto nunca lo necesita.
+
+### Modo batch (resumen periódico)
+
+Con `NOTIFY_MODE=batch`, los bloqueos y desbloqueos se acumulan y se envía un resumen de una sola línea por ventana (bloques unidos con `·`). Las jails van ordenadas por recuento (de mayor a menor, empates por nombre); si hay más de 8 jails, el resto se pliega en `otras N` (N = suma de bloqueos plegados).
+
+```
+📊 Resumen 14:00–15:00 · 🔒 62 bloqueos (postfix 41, 2237 17, nginx-forbidden 4) · 🌐 58 desbloqueos
+📊 Resumen 03:00–04:00 · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo
+```
+
+Con `BATCH_SHOW_IPS=true` cada jail añade sus IPs en spoiler en la misma línea; si el texto supera los 4096 caracteres de Telegram se trocea en varios mensajes de una sola línea. Una ventana sin eventos (visibles) no envía nada; con `NOTIFY_UNBANS=off` se omite el segmento `🌐 …`. Las jails de `NOTIFY_INSTANT_JAILS` saltan el lote y conservan el formato de siempre (sin recuento posterior). Los avisos de rotación de log siguen siendo instantáneos en ambos modos, y `F2B_IGNORE_JAILS` / `F2B_IGNORE_IPS` / `F2B_SUPPRESS_SHUTDOWN_FLUSH` se aplican antes de encolar, como antes.
+
+El contador se actualiza UNA vez por resumen enviado con éxito, con todos sus bloqueos (misma regla que hoy: si el envío falla, no se actualiza). Si el envío falla, el lote se conserva para la siguiente ventana; el buffer en memoria tiene tope (descarta los eventos más antiguos) para no crecer sin límite ante un fallo sostenido.
+
+> **Limitación:** el buffer vive en memoria. Un `SIGTERM` normal lo vacía al parar, pero un `kill -9` o un corte de energía pierde hasta una ventana de eventos.
 
 ---
 
