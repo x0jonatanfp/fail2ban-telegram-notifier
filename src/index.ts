@@ -126,6 +126,12 @@ export function createRuntime(config: AppConfig): Runtime {
     ignoreIps: new Set(config.ignoreIps),
     suppressShutdownFlush: config.suppressShutdownFlush,
     now: () => new Date(),
+    notifyMode: config.notifyMode,
+    batchWindowSec: config.batchWindowSec,
+    batchShowIps: config.batchShowIps,
+    batchMaxEvents: config.batchMaxEvents,
+    instantJails: new Set(config.instantJails),
+    notifyUnbans: config.notifyUnbans,
   });
   const showCounter = new ShowCounterUseCase({
     notifier,
@@ -172,7 +178,9 @@ export function createRuntime(config: AppConfig): Runtime {
         counterBackend: config.counterBackend,
         messageLang: config.messageLang,
         fail2banLogPath: config.fail2banLogPath,
+        notifyMode: config.notifyMode,
       });
+      notifyEvents.start();
       await eventSource.start((event) => notifyEvents.handle(event));
       await updateSource.start((update) => handleCommand.handle(update));
       dailyReset.start();
@@ -184,6 +192,11 @@ export function createRuntime(config: AppConfig): Runtime {
       dailyReset.stop();
       await updateSource.stop();
       await eventSource.stop();
+      // Vacía el lote pendiente para que un SIGTERM normal no pierda hasta
+      // una ventana de eventos (un `kill -9` o corte de energía sí la pierde:
+      // el buffer es en memoria).
+      await notifyEvents.flush();
+      notifyEvents.stop();
       await close();
       logger.info("Detenido correctamente.");
     },

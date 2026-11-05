@@ -8,6 +8,8 @@ import type { MessageLang } from "../../domain/services/message-format.ts";
 
 export type Transport = "direct" | "gateway";
 export type CounterBackend = "file" | "postgres";
+export type NotifyMode = "instant" | "batch";
+export type NotifyUnbans = "count" | "off" | "list";
 
 export interface DatabaseConfig {
   host: string;
@@ -37,6 +39,12 @@ export interface AppConfig {
   ignoreIps: string[];
   suppressShutdownFlush: boolean;
   pollIntervalMs: number;
+  notifyMode: NotifyMode;
+  batchWindowSec: number;
+  batchShowIps: boolean;
+  batchMaxEvents: number;
+  instantJails: string[];
+  notifyUnbans: NotifyUnbans;
   counterBackend: CounterBackend;
   counterFile: string;
   database: DatabaseConfig;
@@ -184,6 +192,18 @@ export function loadConfig(env: Env = process.env): AppConfig {
   const suppressShutdownFlush = reader.bool("F2B_SUPPRESS_SHUTDOWN_FLUSH", true);
   const pollIntervalMs = reader.int("F2B_POLL_INTERVAL_MS", 1000, { min: 50 });
 
+  const notifyMode = reader.enum("NOTIFY_MODE", ["instant", "batch"] as const, "instant");
+  const batchWindowSec = reader.int("BATCH_WINDOW_SEC", 3600, { min: 1 });
+  if (!Number.isInteger(86400 / batchWindowSec)) {
+    reader.errors.push(
+      `BATCH_WINDOW_SEC debe ser un divisor de 86400 (recibido ${batchWindowSec}).`,
+    );
+  }
+  const batchShowIps = reader.bool("BATCH_SHOW_IPS", false);
+  const batchMaxEvents = reader.int("BATCH_MAX_EVENTS", 0, { min: 0 });
+  const instantJails = reader.list("NOTIFY_INSTANT_JAILS");
+  const notifyUnbans = reader.enum("NOTIFY_UNBANS", ["count", "off", "list"] as const, "count");
+
   const counterBackend = reader.enum(
     "COUNTER_BACKEND",
     ["file", "postgres"] as const,
@@ -227,6 +247,12 @@ export function loadConfig(env: Env = process.env): AppConfig {
     ignoreIps,
     suppressShutdownFlush,
     pollIntervalMs,
+    notifyMode,
+    batchWindowSec,
+    batchShowIps,
+    batchMaxEvents,
+    instantJails,
+    notifyUnbans,
     counterBackend,
     counterFile,
     database,

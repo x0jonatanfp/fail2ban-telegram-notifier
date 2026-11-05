@@ -40,6 +40,20 @@ export interface MessageTemplates {
   chatIds(input: ChatIdInput): string;
   start(): string;
   help(): string;
+  /** Resumen batch: cabecera con la ventana alineada ("14:00–15:00"). */
+  batchTitle(start: string, end: string): string;
+  /** Segmento de bloqueos; `breakdown` vacío ⇒ sin paréntesis. */
+  batchBans(count: number, breakdown: string): string;
+  /** Segmento de desbloqueos (recuento). */
+  batchUnbans(count: number): string;
+  /** Plegado de jails sobrantes ("otras N" / "other N"). */
+  batchOther(total: number): string;
+  /** Entrada del desglose sin IPs ("postfix 41"). */
+  batchJailCount(jail: string, count: number): string;
+  /** Bloque de jail con IPs ("postfix (41): <spoiler>…</spoiler>, …"). */
+  batchJailIps(jail: string, count: number, ips: string): string;
+  /** Una IP envuelta en spoiler (misma etiqueta que el resto de plantillas). */
+  batchSpoilerIp(ip: string): string;
 }
 
 /** El original mostraría `None` si `last` es nulo (helpers.py:86,98); usamos "-"
@@ -115,6 +129,16 @@ const es: MessageTemplates = {
       `🔍 <b>¡Guárdalo de forma segura!</b> 🔒`
     );
   },
+  batchTitle: (start, end) => `📊 Resumen ${start}–${end}`,
+  batchBans: (count, breakdown) =>
+    breakdown === ""
+      ? `🔒 ${count} ${count === 1 ? "bloqueo" : "bloqueos"}`
+      : `🔒 ${count} ${count === 1 ? "bloqueo" : "bloqueos"} (${breakdown})`,
+  batchUnbans: (count) => `🌐 ${count} ${count === 1 ? "desbloqueo" : "desbloqueos"}`,
+  batchOther: (total) => `otras ${total}`,
+  batchJailCount: (jail, count) => `${jail} ${count}`,
+  batchJailIps: (jail, count, ips) => `${jail} (${count}): ${ips}`,
+  batchSpoilerIp: (ip) => `<span class="tg-spoiler">${ip}</span>`,
   start: () => "Hola. Usa /chat_id o /f2b.",
   help: () =>
     "🛠️ <b>Comandos:</b>\n" +
@@ -169,6 +193,16 @@ const en: MessageTemplates = {
       `🔍 <b>Keep it somewhere safe!</b> 🔒`
     );
   },
+  batchTitle: (start, end) => `📊 Summary ${start}–${end}`,
+  batchBans: (count, breakdown) =>
+    breakdown === ""
+      ? `🔒 ${count} ${count === 1 ? "ban" : "bans"}`
+      : `🔒 ${count} ${count === 1 ? "ban" : "bans"} (${breakdown})`,
+  batchUnbans: (count) => `🌐 ${count} ${count === 1 ? "unban" : "unbans"}`,
+  batchOther: (total) => `other ${total}`,
+  batchJailCount: (jail, count) => `${jail} ${count}`,
+  batchJailIps: (jail, count, ips) => `${jail} (${count}): ${ips}`,
+  batchSpoilerIp: (ip) => `<span class="tg-spoiler">${ip}</span>`,
   start: () => "Hi. Use /chat_id or /f2b.",
   help: () =>
     "🛠️ <b>Commands:</b>\n" +
