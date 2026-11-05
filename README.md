@@ -204,9 +204,11 @@ Resets happen automatically at local midnight and manually via the `/f2b` → **
 With `NOTIFY_MODE=batch`, bans and unbans accumulate and one single-line summary per window is sent (blocks joined with `·`). Jails are ordered by count (descending, name on ties); beyond 8 jails the rest folds into `other N` (N = folded bans).
 
 ```
-📊 Summary 14:00–15:00 · 🔒 62 bans (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 unbans
-📊 Summary 03:00–04:00 · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
+📊 Last hour · 🔒 62 bans (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 unbans
+📊 03:20–04:00 · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
 ```
+
+The header is `📊 Last hour` when the summary covers exactly 60 minutes, and a `📊 HH:MM–HH:MM` range otherwise (partial windows: late start, early flush, shutdown, or retry after a failed send — the header always shows the period actually covered).
 
 With `BATCH_SHOW_IPS=true` each jail gets its IPs as spoilers on the same line; over-long summaries split into several ≤ 4096-character single-line messages. A window with no (visible) events sends nothing; with `NOTIFY_UNBANS=off` the `🌐 …` segment is omitted. Jails in `NOTIFY_INSTANT_JAILS` skip the batch and keep the instant format (and are not counted in the summary). Log-rotation notices stay instant in both modes, and `F2B_IGNORE_JAILS` / `F2B_IGNORE_IPS` / `F2B_SUPPRESS_SHUTDOWN_FLUSH` apply before batching, as before.
 
