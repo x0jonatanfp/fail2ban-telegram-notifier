@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Optional `NOTIFY_MODE=batch`: accumulates bans/unbans and sends one single-line summary per aligned window (`BATCH_WINDOW_SEC`, must divide 86400), with `BATCH_SHOW_IPS`, `BATCH_MAX_EVENTS`, `NOTIFY_INSTANT_JAILS` and `NOTIFY_UNBANS` (`count`/`off`/`list`). Batch templates in `MessageTemplates` (es/en), counter updated once per successfully sent summary, failed sends retried next window with a capped in-memory buffer, shutdown flush on `SIGTERM`. Instant mode (default) unchanged.
 - Batch midnight ordering: the daily reset waits for the pending batch summary (`flush()` as `beforeReset` hook) so bans from the last hour count before the counter resets; concurrent flushes serialize instead of overlapping.
-- Truthful batch header: `📊 Last hour` / `📊 Última hora` when the summary covers exactly 60 minutes, otherwise a `📊 HH:MM–HH:MM` range over the period actually covered (late start, early flush, shutdown, or retry after a failed send no longer claim a full aligned window they did not cover). Hours with no events advance the covered period, so a quiet hour does not stretch the next range.
+- Truthful batch header: `📊 Last hour` / `📊 Última hora` when the summary covers exactly 60 minutes, otherwise `📊 Summary`/`📊 Resumen` (never clock times) (late start, early flush, shutdown, or retry after a failed send no longer claim a full aligned window they did not cover). Hours with no events advance the covered period, so a quiet hour does not stretch the next range.
 
 ## [1.0.0] - 2026-10-10
 
