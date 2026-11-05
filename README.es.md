@@ -205,10 +205,10 @@ Con `NOTIFY_MODE=batch`, los bloqueos y desbloqueos se acumulan y se envía un r
 
 ```
 📊 Última hora · 🔒 62 bloqueos (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 desbloqueos
-📊 Resumen · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo
+📊 Última hora · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo
 ```
 
-La cabecera es `📊 Última hora` cuando el resumen cubre exactamente 60 minutos, y `📊 Resumen` en caso contrario (ventanas parciales: arranque tardío, envío anticipado, apagado o reintento tras fallo). Nunca muestra horas: el periodo exacto solo sirve para decidir cuál de las dos aplica, así que "Última hora" nunca se rotula sobre un periodo que no lo es.
+La cabecera es siempre `📊 Última hora` (nunca horas), un texto fijo: tras un reinicio, un envío anticipado (`BATCH_MAX_EVENTS`) o un reintento se refiere al periodo desde el resumen anterior.
 
 Con `BATCH_SHOW_IPS=true` cada jail añade sus IPs en spoiler en la misma línea; si el texto supera los 4096 caracteres de Telegram se trocea en varios mensajes de una sola línea. Una ventana sin eventos (visibles) no envía nada; con `NOTIFY_UNBANS=off` se omite el segmento `🌐 …`. Las jails de `NOTIFY_INSTANT_JAILS` saltan el lote y conservan el formato de siempre (sin recuento posterior). Los avisos de rotación de log siguen siendo instantáneos en ambos modos, y `F2B_IGNORE_JAILS` / `F2B_IGNORE_IPS` / `F2B_SUPPRESS_SHUTDOWN_FLUSH` se aplican antes de encolar, como antes.
 

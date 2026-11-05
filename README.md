@@ -205,10 +205,10 @@ With `NOTIFY_MODE=batch`, bans and unbans accumulate and one single-line summary
 
 ```
 📊 Last hour · 🔒 62 bans (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 unbans
-📊 Summary · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
+📊 Last hour · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
 ```
 
-The header is `📊 Last hour` when the summary covers exactly 60 minutes, and `📊 Summary` otherwise (partial windows: late start, early flush, shutdown, or retry after a failed send). It never shows clock times: the exact period is only used to decide which of the two applies, so "Last hour" is never printed over a period that is not one.
+The header is always `📊 Last hour` (never clock times), and it is a single fixed text: after a restart, an early flush (`BATCH_MAX_EVENTS`) or a retry it refers to the period since the previous summary.
 
 With `BATCH_SHOW_IPS=true` each jail gets its IPs as spoilers on the same line; over-long summaries split into several ≤ 4096-character single-line messages. A window with no (visible) events sends nothing; with `NOTIFY_UNBANS=off` the `🌐 …` segment is omitted. Jails in `NOTIFY_INSTANT_JAILS` skip the batch and keep the instant format (and are not counted in the summary). Log-rotation notices stay instant in both modes, and `F2B_IGNORE_JAILS` / `F2B_IGNORE_IPS` / `F2B_SUPPRESS_SHUTDOWN_FLUSH` apply before batching, as before.
 
