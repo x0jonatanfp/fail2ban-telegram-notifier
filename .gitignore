@@ -25,5 +25,8 @@ pnpm-debug.log*
 Thumbs.db
 .freebuff
 
+# Planes e informes efímeros de agentes delegados (solo local)
+tmp/
+
 # Copia congelada del bot Python original (solo local, no versionar)
 old/
