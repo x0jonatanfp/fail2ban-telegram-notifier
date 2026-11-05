@@ -40,8 +40,10 @@ export interface MessageTemplates {
   chatIds(input: ChatIdInput): string;
   start(): string;
   help(): string;
-  /** Resumen batch: cabecera con la ventana alineada ("14:00–15:00"). */
+  /** Resumen batch: cabecera con el rango cubierto ("14:00–15:00"). */
   batchTitle(start: string, end: string): string;
+  /** Resumen batch: cabecera cuando el periodo cubre exactamente una hora. */
+  batchTitleLastHour(): string;
   /** Segmento de bloqueos; `breakdown` vacío ⇒ sin paréntesis. */
   batchBans(count: number, breakdown: string): string;
   /** Segmento de desbloqueos (recuento). */
@@ -129,7 +131,8 @@ const es: MessageTemplates = {
       `🔍 <b>¡Guárdalo de forma segura!</b> 🔒`
     );
   },
-  batchTitle: (start, end) => `📊 Resumen ${start}–${end}`,
+  batchTitle: (start, end) => `📊 ${start}–${end}`,
+  batchTitleLastHour: () => "📊 Última hora",
   batchBans: (count, breakdown) =>
     breakdown === ""
       ? `🔒 ${count} ${count === 1 ? "bloqueo" : "bloqueos"}`
@@ -193,7 +196,8 @@ const en: MessageTemplates = {
       `🔍 <b>Keep it somewhere safe!</b> 🔒`
     );
   },
-  batchTitle: (start, end) => `📊 Summary ${start}–${end}`,
+  batchTitle: (start, end) => `📊 ${start}–${end}`,
+  batchTitleLastHour: () => "📊 Last hour",
   batchBans: (count, breakdown) =>
     breakdown === ""
       ? `🔒 ${count} ${count === 1 ? "ban" : "bans"}`

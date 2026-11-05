@@ -15,8 +15,10 @@ export interface BatchRecordedEvent {
 export type NotifyUnbansMode = "count" | "off" | "list";
 
 export interface BatchSummaryData {
-  windowStart: Date;
-  windowEnd: Date;
+  /** Inicio del periodo realmente cubierto (no siempre el de la ventana). */
+  periodStart: Date;
+  /** Fin del periodo realmente cubierto. */
+  periodEnd: Date;
   bans: BatchRecordedEvent[];
   unbans: BatchRecordedEvent[];
   showIps: boolean;
@@ -73,6 +75,24 @@ function splitJailBlock(block: string, jail: string, count: number, spoilerIps: 
   return parts;
 }
 
+/** Una hora exacta en ms: periodo completo ⇒ cabecera "Última hora". */
+export const FULL_HOUR_MS = 3600000;
+
+/**
+ * Cabecera del resumen: "Última hora" si el periodo cubre exactamente 60
+ * minutos, rango `HH:MM–HH:MM` en caso contrario (el 📊 ya indica que es
+ * un resumen, sin la palabra "Resumen").
+ */
+export function batchTitleFor(periodStart: Date, periodEnd: Date, messages: MessageTemplates): string {
+  if (periodEnd.getTime() - periodStart.getTime() === FULL_HOUR_MS) {
+    return messages.batchTitleLastHour();
+  }
+  return messages.batchTitle(
+    formatLocalHourMinute(periodStart),
+    formatLocalHourMinute(periodEnd),
+  );
+}
+
 /**
  * Formatea el resumen del lote. Devuelve 0..N mensajes de una sola línea
  * (cada uno ≤ 4096). Vacío ⇒ no enviar nada (ventana sin eventos visibles).
@@ -84,12 +104,7 @@ export function formatBatchSummary(data: BatchSummaryData, messages: MessageTemp
   if (banGroups.length === 0 && !showUnbans) return [];
 
   const blocks: string[] = [];
-  blocks.push(
-    messages.batchTitle(
-      formatLocalHourMinute(data.windowStart),
-      formatLocalHourMinute(data.windowEnd),
-    ),
-  );
+  blocks.push(batchTitleFor(data.periodStart, data.periodEnd, messages));
 
   if (banGroups.length > 0) {
     const total = data.bans.length;

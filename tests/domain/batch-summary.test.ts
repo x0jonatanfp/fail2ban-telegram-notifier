@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  batchTitleFor,
   formatBatchSummary,
   MAX_JAILS_SHOWN,
   TELEGRAM_MAX_MESSAGE_LEN,
@@ -10,9 +11,14 @@ import { getMessages } from "../../src/domain/services/message-format.ts";
 const es = getMessages("es");
 const en = getMessages("en");
 
-const win = (sh: number, eh: number): Pick<BatchSummaryData, "windowStart" | "windowEnd"> => ({
-  windowStart: new Date(2026, 9, 10, sh, 0, 0),
-  windowEnd: new Date(2026, 9, 10, eh, 0, 0),
+const win = (sh: number, eh: number): Pick<BatchSummaryData, "periodStart" | "periodEnd"> => ({
+  periodStart: new Date(2026, 9, 10, sh, 0, 0),
+  periodEnd: new Date(2026, 9, 10, eh, 0, 0),
+});
+
+const part = (sh: number, sm: number, eh: number, em: number): Pick<BatchSummaryData, "periodStart" | "periodEnd"> => ({
+  periodStart: new Date(2026, 9, 10, sh, sm, 0),
+  periodEnd: new Date(2026, 9, 10, eh, em, 0),
 });
 
 const bans = (jail: string, n: number, base = "1.2.3"): BatchSummaryData["bans"] =>
@@ -31,8 +37,42 @@ describe("formatBatchSummary", () => {
       es,
     );
     expect(texts).toEqual([
-      "📊 Resumen 03:00–04:00 · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo",
+      "📊 Última hora · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo",
     ]);
+  });
+
+  it("periodo parcial usa el rango sin la palabra Resumen (es/en)", () => {
+    const texts = formatBatchSummary(
+      {
+        ...part(10, 20, 11, 0),
+        bans: bans("sshd", 1),
+        unbans: [],
+        showIps: false,
+        unbanMode: "count",
+      },
+      es,
+    );
+    expect(texts).toEqual(["📊 10:20–11:00 · 🔒 1 bloqueo (sshd 1)"]);
+
+    const textsEn = formatBatchSummary(
+      {
+        ...part(10, 20, 11, 0),
+        bans: bans("sshd", 1),
+        unbans: [],
+        showIps: false,
+        unbanMode: "count",
+      },
+      en,
+    );
+    expect(textsEn).toEqual(["📊 10:20–11:00 · 🔒 1 ban (sshd 1)"]);
+  });
+
+  it("batchTitleFor: 3600000 ms exactos es hora completa; un ms más o menos, rango", () => {
+    const start = new Date(2026, 9, 10, 10, 0, 0);
+    expect(batchTitleFor(start, new Date(start.getTime() + 3600000), es)).toBe("📊 Última hora");
+    expect(batchTitleFor(start, new Date(start.getTime() + 3600000), en)).toBe("📊 Last hour");
+    expect(batchTitleFor(start, new Date(start.getTime() + 3600001), es)).toBe("📊 10:00–11:00");
+    expect(batchTitleFor(start, new Date(start.getTime() + 3599999), es)).toBe("📊 10:00–10:59");
   });
 
   it("una sola línea: ningún mensaje contiene \\n", () => {
@@ -58,7 +98,7 @@ describe("formatBatchSummary", () => {
       { ...win(14, 15), bans: bans("sshd", 1), unbans: [], showIps: false, unbanMode: "count" },
       es,
     );
-    expect(one).toEqual(["📊 Resumen 14:00–15:00 · 🔒 1 bloqueo (sshd 1)"]);
+    expect(one).toEqual(["📊 Última hora · 🔒 1 bloqueo (sshd 1)"]);
 
     const oneEn = formatBatchSummary(
       {
@@ -70,13 +110,13 @@ describe("formatBatchSummary", () => {
       },
       en,
     );
-    expect(oneEn).toEqual(["📊 Summary 14:00–15:00 · 🔒 1 ban (sshd 1) · 🌐 1 unban"]);
+    expect(oneEn).toEqual(["📊 Last hour · 🔒 1 ban (sshd 1) · 🌐 1 unban"]);
 
     const manyEn = formatBatchSummary(
       { ...win(14, 15), bans: bans("sshd", 62), unbans: bans("x", 58, "8.8.8"), showIps: false, unbanMode: "count" },
       en,
     );
-    expect(manyEn).toEqual(["📊 Summary 14:00–15:00 · 🔒 62 bans (sshd 62) · 🌐 58 unbans"]);
+    expect(manyEn).toEqual(["📊 Last hour · 🔒 62 bans (sshd 62) · 🌐 58 unbans"]);
   });
 
   it("ordena jails por recuento (empates por nombre)", () => {
@@ -90,7 +130,7 @@ describe("formatBatchSummary", () => {
       },
       es,
     );
-    expect(texts).toEqual(["📊 Resumen 14:00–15:00 · 🔒 9 bloqueos (top 5, a-jail 2, b-jail 2)"]);
+    expect(texts).toEqual(["📊 Última hora · 🔒 9 bloqueos (top 5, a-jail 2, b-jail 2)"]);
   });
 
   it("pliega a partir de 8 jails en `otras N` / `other N`", () => {
@@ -128,7 +168,7 @@ describe("formatBatchSummary", () => {
       es,
     );
     expect(texts).toEqual([
-      "📊 Resumen 14:00–15:00 · 🔒 2 bloqueos · postfix (2): " +
+      "📊 Última hora · 🔒 2 bloqueos · postfix (2): " +
         "<span class=\"tg-spoiler\">1.2.3.4</span>, <span class=\"tg-spoiler\">5.6.7.8</span>",
     ]);
   });
@@ -144,7 +184,7 @@ describe("formatBatchSummary", () => {
       },
       es,
     );
-    expect(mixed).toEqual(["📊 Resumen 14:00–15:00 · 🔒 1 bloqueo (sshd 1)"]);
+    expect(mixed).toEqual(["📊 Última hora · 🔒 1 bloqueo (sshd 1)"]);
 
     const onlyUnbans = formatBatchSummary(
       {
@@ -170,13 +210,13 @@ describe("formatBatchSummary", () => {
       },
       es,
     );
-    expect(onlyUnbans).toEqual(["📊 Resumen 14:00–15:00 · 🌐 2 desbloqueos"]);
+    expect(onlyUnbans).toEqual(["📊 Última hora · 🌐 2 desbloqueos"]);
 
     const onlyBans = formatBatchSummary(
       { ...win(14, 15), bans: bans("sshd", 2), unbans: [], showIps: false, unbanMode: "count" },
       es,
     );
-    expect(onlyBans).toEqual(["📊 Resumen 14:00–15:00 · 🔒 2 bloqueos (sshd 2)"]);
+    expect(onlyBans).toEqual(["📊 Última hora · 🔒 2 bloqueos (sshd 2)"]);
   });
 
   it("ventana vacía no envía nada", () => {
@@ -220,6 +260,11 @@ describe("formatBatchSummary", () => {
     // Cada trozo de jail mantiene su etiqueta.
     for (const text of texts.slice(1)) {
       expect(text).toContain("postfix (300):");
+    }
+    // El troceo sigue con una sola cabecera en el primer mensaje.
+    expect(texts[0]).toContain("📊 Última hora");
+    for (const text of texts.slice(1)) {
+      expect(text).not.toContain("📊");
     }
   });
 });

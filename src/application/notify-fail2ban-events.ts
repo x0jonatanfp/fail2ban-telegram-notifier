@@ -67,6 +67,8 @@ export class NotifyFail2banEventsUseCase {
   private readonly suppressor = new ShutdownSuppressor();
   private readonly buffer = new BatchBuffer();
   private window: BatchWindow | undefined;
+  /** Instante desde el que se observa y aún no se ha resumido. */
+  private coveredFrom: Date | undefined;
   private timer: { unref?: () => void } | undefined;
   /** Cola de flushes: cada `flush()` espera al anterior (mutex sin dependencias). */
   private flushTail: Promise<void> = Promise.resolve();
@@ -81,6 +83,9 @@ export class NotifyFail2banEventsUseCase {
   start(): void {
     if (this.mode !== "batch" || this.timer !== undefined) return;
     this.window = windowFor(this.deps.now(), this.deps.batchWindowSec ?? 3600);
+    // La cobertura empieza al arrancar: el primer resumen del timer cubre
+    // la ventana entera aunque el primer evento llegue más tarde.
+    this.coveredFrom = this.deps.now();
     this.scheduleLocked();
   }
 
@@ -96,22 +101,16 @@ export class NotifyFail2banEventsUseCase {
 
   /** Envía el resumen pendiente, si hay eventos visibles. Para el apagado.
    *
-   * Porqué se serializa: si hay un flush en curso (timer o anticipado), una
-   * nueva llamada ESPERA a que termine y luego vacía lo que quede, en vez de
+   * El fin del periodo es `now()` en el momento de ejecutarse (tras esperar
+   * su turno en la cola): la cabecera refleja lo realmente cubierto. Porqué
+   * se serializa: si hay un flush en curso (timer o anticipado), una nueva
+   * llamada ESPERA a que termine y luego vacía lo que quede, en vez de
    * retornar de inmediato. Así el gancho `beforeReset` de medianoche puede
    * esperar al resumen 23:00–00:00 antes del reinicio diario. En `instant`
    * sigue siendo no-op. */
   async flush(): Promise<void> {
     if (this.mode !== "batch") return;
-    // La cabecera se fija al pedir el flush, no al ejecutarlo: los eventos que
-    // lleguen durante un flush en curso pertenecen a la ventana siguiente.
-    const snapshot =
-      this.window ?? windowFor(this.deps.now(), this.deps.batchWindowSec ?? 3600);
-    const run = this.flushTail.then(() => this.flushLocked(snapshot));
-    // `flushLocked` nunca lanza (registra sus errores), pero se protege la
-    // cadena igualmente para que un fallo inesperado no bloquee flushes futuros.
-    this.flushTail = run.catch(() => undefined);
-    await run;
+    await this.enqueueFlush(() => this.deps.now());
   }
 
   async handle(event: LogEvent): Promise<void> {
@@ -215,6 +214,11 @@ export class NotifyFail2banEventsUseCase {
     if (this.window === undefined) {
       this.window = windowFor(this.deps.now(), this.deps.batchWindowSec ?? 3600);
     }
+    // Sin `start()` previo (p. ej. flush directo): la cobertura empieza con
+    // el primer evento observado, para no titular periodos no observados.
+    if (this.coveredFrom === undefined) {
+      this.coveredFrom = this.deps.now();
+    }
   }
 
   private maybeFlushEarly(): void {
@@ -238,26 +242,51 @@ export class NotifyFail2banEventsUseCase {
     this.timer.unref?.();
   }
 
+  /** Encola un flush con el fin de periodo dado (evaluado al ejecutarse). */
+  private async enqueueFlush(periodEnd: () => Date): Promise<void> {
+    const run = this.flushTail.then(() => this.flushLocked(periodEnd()));
+    // `flushLocked` nunca lanza (registra sus errores), pero se protege la
+    // cadena igualmente para que un fallo inesperado no bloquee flushes futuros.
+    this.flushTail = run.catch(() => undefined);
+    await run;
+  }
+
   private async onWindowTimer(): Promise<void> {
     this.timer = undefined;
     const fired = this.deps.now();
     const snapshot = this.window ?? windowFor(fired, this.deps.batchWindowSec ?? 3600);
-    // Serializado con cualquier otro flush en curso: el segundo vacía lo que
-    // quede (o no hace nada si el buffer ya quedó vacío), nunca duplica.
-    await this.flush();
+    // Porqué el fin es el de la ventana y no `now()`: el disparo llega unos
+    // ms tarde y el título debe ser el periodo alineado veraz ("Última
+    // hora" cuando la cobertura empezó al inicio de la ventana). Serializado
+    // con cualquier otro flush en curso: el segundo vacía lo que quede (o no
+    // hace nada si el buffer ya quedó vacío), nunca duplica.
+    await this.enqueueFlush(() => snapshot.end);
     // Avanza a la ventana alineada siguiente y reprograma.
     this.window = windowFor(snapshot.end, this.deps.batchWindowSec ?? 3600);
     this.scheduleLocked();
   }
 
-  private async flushLocked(snapshot: BatchWindow): Promise<void> {
-    if (this.buffer.isEmpty) return;
+  private async flushLocked(periodEnd: Date): Promise<void> {
+    if (this.buffer.isEmpty) {
+      // Periodo sin eventos: nada que resumir y nada que perder, así que la
+      // cobertura avanza. Sin esto, tras una hora tranquila el siguiente
+      // resumen arrastraría un rango más largo (03:00–05:00) y "Última hora"
+      // casi nunca saldría de madrugada. (En un fallo de envío el buffer NO
+      // está vacío, así que ahí la cobertura sigue sin avanzar.)
+      if (this.coveredFrom !== undefined && periodEnd.getTime() > this.coveredFrom.getTime()) {
+        this.coveredFrom = periodEnd;
+      }
+      return;
+    }
+    // Los eventos que lleguen durante el `await` del envío pertenecen al
+    // periodo siguiente: el inicio se fija al ejecutar, no al pedir.
+    const periodStart = this.coveredFrom ?? this.deps.now();
     const { bans, unbans } = this.buffer.snapshot();
     const unbanMode = this.deps.notifyUnbans ?? "count";
     const texts = formatBatchSummary(
       {
-        windowStart: snapshot.start,
-        windowEnd: snapshot.end,
+        periodStart,
+        periodEnd,
         bans,
         // Con `off` ya ni se encolan, pero se filtra de nuevo por seguridad.
         unbans: unbanMode === "off" ? [] : unbans,
@@ -267,8 +296,10 @@ export class NotifyFail2banEventsUseCase {
       this.deps.messages,
     );
     if (texts.length === 0) {
-      // Solo-unbans con `off`: se descartan sin enviar.
+      // Solo-unbans con `off`: se descartan sin enviar y la cobertura
+      // avanza hasta el fin del periodo (esos eventos ya no existen).
       this.buffer.drain(bans.length, unbans.length);
+      this.coveredFrom = periodEnd;
       return;
     }
     if (this.buffer.droppedCount > 0) {
@@ -302,8 +333,9 @@ export class NotifyFail2banEventsUseCase {
       // Solo guarda si hubo bans (los unbans no tocan el contador).
       if (bans.length > 0) await this.deps.counterStore.save(next);
       // Drena SOLO lo enviado: lo que llegó durante el `await` se conserva
-      // para el siguiente resumen.
+      // para el siguiente resumen, cuya cobertura empieza en este fin.
       this.buffer.drain(bans.length, unbans.length);
+      this.coveredFrom = periodEnd;
       this.deps.logger.info("Resumen del lote enviado.", {
         bans: bans.length,
         unbans: unbanMode === "off" ? 0 : unbans.length,
@@ -311,8 +343,10 @@ export class NotifyFail2banEventsUseCase {
       });
     } catch (error) {
       // El resumen ya salió: se drena lo enviado para no duplicarlo en el
-      // reintento y se registra el fallo del contador.
+      // reintento y se registra el fallo del contador. La cobertura avanza
+      // igual (el resumen existe, solo falló el recuento).
       this.buffer.drain(bans.length, unbans.length);
+      this.coveredFrom = periodEnd;
       this.deps.logger.error("Resumen enviado pero falló la actualización del contador.", {
         error: errText(error),
       });
