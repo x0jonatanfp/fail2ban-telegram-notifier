@@ -204,7 +204,7 @@ Resets happen automatically at local midnight and manually via the `/f2b` → **
 With `NOTIFY_MODE=batch`, bans and unbans accumulate and one single-line summary per window is sent (blocks joined with `·`). Jails are ordered by count (descending, name on ties); beyond 8 jails the rest folds into `other N` (N = folded bans).
 
 ```
-📊 Summary 14:00–15:00 · 🔒 62 bans (postfix 41, 2237 17, nginx-forbidden 4) · 🌐 58 unbans
+📊 Summary 14:00–15:00 · 🔒 62 bans (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 unbans
 📊 Summary 03:00–04:00 · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
 ```
 

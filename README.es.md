@@ -204,7 +204,7 @@ Los reinicios ocurren automáticamente a medianoche local y de forma manual con 
 Con `NOTIFY_MODE=batch`, los bloqueos y desbloqueos se acumulan y se envía un resumen de una sola línea por ventana (bloques unidos con `·`). Las jails van ordenadas por recuento (de mayor a menor, empates por nombre); si hay más de 8 jails, el resto se pliega en `otras N` (N = suma de bloqueos plegados).
 
 ```
-📊 Resumen 14:00–15:00 · 🔒 62 bloqueos (postfix 41, 2237 17, nginx-forbidden 4) · 🌐 58 desbloqueos
+📊 Resumen 14:00–15:00 · 🔒 62 bloqueos (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 desbloqueos
 📊 Resumen 03:00–04:00 · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo
 ```
 
