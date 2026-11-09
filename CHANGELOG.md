@@ -42,5 +42,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   end-to-end path — never contacting Telegram.
 - A generic systemd unit template (`deploy/f2b.service.example`).
 
-[Unreleased]: https://github.com/x0-jonatanfp/fail2ban-telegram-notifier/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/x0-jonatanfp/fail2ban-telegram-notifier/releases/tag/v1.0.0
+[Unreleased]: https://github.com/x0jonatanfp/fail2ban-telegram-notifier/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/x0jonatanfp/fail2ban-telegram-notifier/releases/tag/v1.0.0

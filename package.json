@@ -17,14 +17,14 @@
     "systemd"
   ],
   "license": "MIT",
-  "author": "x0-jonatanfp",
+  "author": "x0jonatanfp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier.git"
+    "url": "https://github.com/x0jonatanfp/fail2ban-telegram-notifier.git"
   },
-  "homepage": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier#readme",
+  "homepage": "https://github.com/x0jonatanfp/fail2ban-telegram-notifier#readme",
   "bugs": {
-    "url": "https://github.com/x0-jonatanfp/fail2ban-telegram-notifier/issues"
+    "url": "https://github.com/x0jonatanfp/fail2ban-telegram-notifier/issues"
   },
   "engines": {
     "node": ">=22.18.0"

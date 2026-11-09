@@ -43,7 +43,7 @@
 ## Inicio rápido
 
 ```bash
-git clone https://github.com/x0-jonatanfp/fail2ban-telegram-notifier.git
+git clone https://github.com/x0jonatanfp/fail2ban-telegram-notifier.git
 cd fail2ban-telegram-notifier
 pnpm install
 
