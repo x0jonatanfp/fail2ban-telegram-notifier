@@ -1,6 +1,6 @@
 {
   "name": "fail2ban-telegram-notifier",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "private": true,
   "description": "Get fail2ban bans and unbans in Telegram in real time (Bot API or a local tg-gateway). Zero runtime dependencies.",
   "keywords": [

@@ -23,7 +23,6 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
-.freebuff
 
 # Planes e informes efímeros de agentes delegados (solo local)
 tmp/
