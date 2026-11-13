@@ -48,9 +48,9 @@ export interface MessageTemplates {
   batchUnbans(count: number): string;
   /** Plegado de jails sobrantes ("otras N" / "other N"). */
   batchOther(total: number): string;
-  /** Entrada del desglose sin IPs ("postfix 41"). */
+  /** Entrada del desglose sin IPs ("sshd 41"). */
   batchJailCount(jail: string, count: number): string;
-  /** Bloque de jail con IPs ("postfix (41): <spoiler>…</spoiler>, …"). */
+  /** Bloque de jail con IPs ("sshd (41): <spoiler>…</spoiler>, …"). */
   batchJailIps(jail: string, count: number, ips: string): string;
   /** Una IP envuelta en spoiler (misma etiqueta que el resto de plantillas). */
   batchSpoilerIp(ip: string): string;

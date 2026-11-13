@@ -25,7 +25,7 @@
 - **Sin desbloqueos falsos** — suprime la avalancha de líneas `Unban` que fail2ban emite al apagarse o reiniciarse.
 - **Contador de bloqueos** — diarios, reincidentes y totales, con reinicio automático a medianoche local y botón de reinicio manual.
 - **Comandos** — `/f2b` (configuración), `/chat_id` (averigua tus ids de chat/tema), `/start`, `/help`.
-- **Dos transportes** — habla con Telegram directamente por la Bot API, o a través de un `tg-gateway` local.
+- **Dos transportes** — habla con Telegram directamente por la Bot API, o a través de un [`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway), un gateway local de Telegram.
 - **Persistencia inmediata** — el contador vive en un fichero JSON por defecto (sin base de datos); PostgreSQL es opcional.
 - **Mensajes bilingües** — español (por defecto) e inglés.
 - **Pequeño y sin dependencias** — sin dependencias en ejecución; los logs van a stdout/stderr, que systemd/journald recoge.
@@ -35,7 +35,7 @@
 ## Requisitos
 
 - **Node.js >= 22.18.0** para desarrollo (ejecuta el TypeScript directamente usando la transformación experimental de TypeScript integrada en Node). El artefacto compilado necesita **Node.js >= 22**.
-- Un **token de bot** de Telegram (para el transporte `direct`) o un **`tg-gateway`** en marcha.
+- Un **token de bot** de Telegram (para el transporte `direct`) o un **[`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway)** (un gateway local de Telegram) en marcha.
 - **fail2ban** instalado y escribiendo en un fichero de log (por defecto `/var/log/fail2ban.log`).
 
 ---
@@ -152,7 +152,7 @@ El bot habla con Telegram directamente: `sendMessage`, `deleteMessage`, `answerC
 
 ### `gateway` — tg-gateway local
 
-El bot habla con un `tg-gateway` local por loopback en lugar de con Telegram. Registra sus comandos en el gateway (`POST /api/register-handler`) y recibe los updates en un pequeño servidor HTTP local (`POST /tg-update`). Úsalo si ya tienes un gateway y quieres rate-limiting, circuit breaker y un único punto que guarda el token de Telegram.
+El bot habla con un [`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway) local por loopback en lugar de con Telegram. Registra sus comandos en el gateway (`POST /api/register-handler`) y recibe los updates en un pequeño servidor HTTP local (`POST /tg-update`). Úsalo si ya tienes un gateway y quieres rate-limiting, circuit breaker y un único punto que guarda el token de Telegram.
 
 > **Limitación conocida:** el `/api/send` del `tg-gateway` actual **no** acepta `message_thread_id`. En modo `gateway`, `TELEGRAM_TOPIC_ID` se ignora. En modo `direct` sí funciona.
 
@@ -161,7 +161,7 @@ El bot habla con un `tg-gateway` local por loopback en lugar de con Telegram. Re
 ```dotenv
 TRANSPORT=direct
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF...       # tu token de bot, de @BotFather
-TELEGRAM_CHAT_ID=-1001234567890            # usa /chat_id para descubrirlo
+TELEGRAM_CHAT_ID=-1000000000001            # usa /chat_id para descubrirlo
 TELEGRAM_TOPIC_ID=42                       # opcional (tema de foro)
 FAIL2BAN_LOG_PATH=/var/log/fail2ban.log
 ```
@@ -177,7 +177,7 @@ TRANSPORT=gateway
 TG_GATEWAY_URL=http://127.0.0.1:4000
 WEBHOOK_HOST=127.0.0.1
 WEBHOOK_PORT=14120
-TELEGRAM_CHAT_ID=-1001234567890            # usa /chat_id para descubrirlo
+TELEGRAM_CHAT_ID=-1000000000001            # usa /chat_id para descubrirlo
 FAIL2BAN_LOG_PATH=/var/log/fail2ban.log
 ```
 
@@ -204,8 +204,8 @@ Los reinicios ocurren automáticamente a medianoche local y de forma manual con 
 Con `NOTIFY_MODE=batch`, los bloqueos y desbloqueos se acumulan y se envía un resumen de una sola línea por ventana (bloques unidos con `·`). Las jails van ordenadas por recuento (de mayor a menor, empates por nombre); si hay más de 8 jails, el resto se pliega en `otras N` (N = suma de bloqueos plegados).
 
 ```
-📊 Última hora · 🔒 62 bloqueos (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 desbloqueos
-📊 Última hora · 🔒 2 bloqueos (nginx-botsearch 2) · 🌐 1 desbloqueo
+📊 Última hora · 🔒 62 bloqueos (sshd 55, recidive 3, sshd-ddos 4) · 🌐 58 desbloqueos
+📊 Última hora · 🔒 2 bloqueos (sshd-ddos 2) · 🌐 1 desbloqueo
 ```
 
 La cabecera es siempre `📊 Última hora` (nunca horas), un texto fijo: tras un reinicio, un envío anticipado (`BATCH_MAX_EVENTS`) o un reintento se refiere al periodo desde el resumen anterior.

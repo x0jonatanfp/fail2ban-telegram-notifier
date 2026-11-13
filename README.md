@@ -25,7 +25,7 @@
 - **No false unbans** — suppresses the mass of `Unban` lines fail2ban emits when it shuts down or restarts.
 - **Ban counter** — per-day, reoffenders and total, with an automatic reset at local midnight and a manual reset button.
 - **Slash commands** — `/f2b` (settings), `/chat_id` (find your chat/topic ids), `/start`, `/help`.
-- **Two transports** — talk to Telegram directly through the Bot API, or through a local `tg-gateway`.
+- **Two transports** — talk to Telegram directly through the Bot API, or through a local [`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway), a local Telegram gateway.
 - **Plug-and-play storage** — the counter lives in a JSON file by default (no database); PostgreSQL is optional.
 - **Bilingual messages** — Spanish (default) and English.
 - **Tiny and dependency-free** — no runtime dependencies; logs to stdout/stderr so systemd/journald captures them.
@@ -35,7 +35,7 @@
 ## Requirements
 
 - **Node.js >= 22.18.0** for development (it runs the TypeScript source directly using Node's built-in experimental TypeScript transform). The compiled artifact needs **Node.js >= 22**.
-- A Telegram **bot token** (for the `direct` transport) or a running **`tg-gateway`**.
+- A Telegram **bot token** (for the `direct` transport) or a running **[`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway)** (a local Telegram gateway).
 - **fail2ban** installed and writing to a log file (default `/var/log/fail2ban.log`).
 
 ---
@@ -152,7 +152,7 @@ The bot talks to Telegram itself: `sendMessage`, `deleteMessage`, `answerCallbac
 
 ### `gateway` — local tg-gateway
 
-The bot talks to a local `tg-gateway` over loopback instead of Telegram. It registers its commands with the gateway (`POST /api/register-handler`) and receives updates on a small local HTTP server (`POST /tg-update`). Use this if you already run a gateway and want rate-limiting, a circuit breaker and a single point that holds the Telegram token.
+The bot talks to a local [`tg-gateway`](https://github.com/x0jonatanfp/tg-gateway) over loopback instead of Telegram. It registers its commands with the gateway (`POST /api/register-handler`) and receives updates on a small local HTTP server (`POST /tg-update`). Use this if you already run a gateway and want rate-limiting, a circuit breaker and a single point that holds the Telegram token.
 
 > **Known limitation:** the current `tg-gateway` `/api/send` does **not** accept `message_thread_id`. In `gateway` mode `TELEGRAM_TOPIC_ID` is therefore ignored. In `direct` mode it works.
 
@@ -161,7 +161,7 @@ The bot talks to a local `tg-gateway` over loopback instead of Telegram. It regi
 ```dotenv
 TRANSPORT=direct
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF...       # your bot token from @BotFather
-TELEGRAM_CHAT_ID=-1001234567890            # use /chat_id to find it
+TELEGRAM_CHAT_ID=-1000000000001            # use /chat_id to find it
 TELEGRAM_TOPIC_ID=42                       # optional (forum topic)
 FAIL2BAN_LOG_PATH=/var/log/fail2ban.log
 ```
@@ -177,7 +177,7 @@ TRANSPORT=gateway
 TG_GATEWAY_URL=http://127.0.0.1:4000
 WEBHOOK_HOST=127.0.0.1
 WEBHOOK_PORT=14120
-TELEGRAM_CHAT_ID=-1001234567890            # use /chat_id to find it
+TELEGRAM_CHAT_ID=-1000000000001            # use /chat_id to find it
 FAIL2BAN_LOG_PATH=/var/log/fail2ban.log
 ```
 
@@ -204,8 +204,8 @@ Resets happen automatically at local midnight and manually via the `/f2b` → **
 With `NOTIFY_MODE=batch`, bans and unbans accumulate and one single-line summary per window is sent (blocks joined with `·`). Jails are ordered by count (descending, name on ties); beyond 8 jails the rest folds into `other N` (N = folded bans).
 
 ```
-📊 Last hour · 🔒 62 bans (postfix 55, recidive 3, nginx-forbidden 4) · 🌐 58 unbans
-📊 Last hour · 🔒 2 bans (nginx-botsearch 2) · 🌐 1 unban
+📊 Last hour · 🔒 62 bans (sshd 55, recidive 3, sshd-ddos 4) · 🌐 58 unbans
+📊 Last hour · 🔒 2 bans (sshd-ddos 2) · 🌐 1 unban
 ```
 
 The header is always `📊 Last hour` (never clock times), and it is a single fixed text: after a restart, an early flush (`BATCH_MAX_EVENTS`) or a retry it refers to the period since the previous summary.

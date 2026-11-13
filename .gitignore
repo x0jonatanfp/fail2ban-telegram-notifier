@@ -28,5 +28,5 @@ Thumbs.db
 # Planes e informes efímeros de agentes delegados (solo local)
 tmp/
 
-# Copia congelada del bot Python original (solo local, no versionar)
+# Copia congelada local (solo local, no versionar)
 old/
