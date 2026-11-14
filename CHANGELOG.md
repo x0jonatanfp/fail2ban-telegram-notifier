@@ -1,17 +1,22 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## 1.2.0 (2026-11-14)
 
-## [Unreleased]
+### Features
 
-### Added
+* **batch:** añade el modo batch con resumen periódico en una línea ([c6c91b2](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/c6c91b22883f5e395720ae69a4685b3408a2153e))
+* **commands:** autoborra también la respuesta de /chat_id ([02da5ab](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/02da5ab31e4b37b60a55305cc1250b58b5277dcf))
+* importa el notificador de fail2ban migrado a TypeScript ([e514899](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/e5148999ec47cd9526f49b135e5e8e97f16bd037))
 
-- Optional `NOTIFY_MODE=batch`: accumulates bans/unbans and sends one single-line summary per aligned window (`BATCH_WINDOW_SEC`, must divide 86400), with `BATCH_SHOW_IPS`, `BATCH_MAX_EVENTS`, `NOTIFY_INSTANT_JAILS` and `NOTIFY_UNBANS` (`count`/`off`/`list`). Batch templates in `MessageTemplates` (es/en), counter updated once per successfully sent summary, failed sends retried next window with a capped in-memory buffer, shutdown flush on `SIGTERM`. Instant mode (default) unchanged.
-- Batch midnight ordering: the daily reset waits for the pending batch summary (`flush()` as `beforeReset` hook) so bans from the last hour count before the counter resets; concurrent flushes serialize instead of overlapping.
-- Batch header: always `📊 Last hour` / `📊 Última hora`, with no clock times.
+### Bug Fixes
+
+* **batch:** cabecera Última hora y rango siempre veraz ([44f6dde](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/44f6dde9b4609e2b25197fead4add5a938cf3cc1))
+* **batch:** evita perder eventos y ordena el resumen con el reinicio diario ([c6e4081](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/c6e4081dd61b15bb100ab790f42b70df56a24199))
+* **batch:** la cabecera es siempre Última hora, sin horas ([c68ef0b](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/c68ef0bedca076c0e6730472298b8f0e40a553c7))
+* **batch:** la cabecera nunca muestra horas ([7aca3da](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/7aca3dae3859af496bc571f3d55c204e245f0f5b))
+* **gateway:** no registra /start ni /help en el gateway ([00c5495](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/00c5495952c8370873c29d0cabe798eed3975baa))
 
 ## [1.0.0] - 2026-10-10
 
