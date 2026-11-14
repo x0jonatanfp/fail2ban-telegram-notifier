@@ -49,7 +49,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "release": "npx -y commit-and-tag-version@13.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
