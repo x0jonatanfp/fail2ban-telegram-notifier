@@ -29,3 +29,7 @@ tmp/
 
 # Copia congelada local (solo local, no versionar)
 old/
+
+# secretos locales (las plantillas .env.example sí se versionan)
+.env.*
+!.env.example
