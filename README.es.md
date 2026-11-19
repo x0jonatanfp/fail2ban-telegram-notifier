@@ -317,6 +317,16 @@ El flujo: `tail-log-source` emite eventos → `notify-fail2ban-events` aplica el
 
 ---
 
+## Historia
+
+Este es el tercer notificador de fail2ban para Telegram del mismo autor:
+
+1. **v1 (2024): script de Bash**, una acción de fail2ban que avisaba con `curl` en cada bloqueo y desbloqueo. Retirado.
+2. **v2 (2026): bot en Python** que seguía `fail2ban.log`, con contador y comandos.
+3. **v3 (octubre de 2026): este proyecto**, una reescritura en TypeScript del bot de Python con arquitectura hexagonal, paridad byte a byte de los mensajes y tests.
+
+El número de versión del paquete (`package.json`) empieza en este repositorio y no sigue esa numeración.
+
 ## Licencia
 
 MIT — ver [LICENSE](LICENSE).
