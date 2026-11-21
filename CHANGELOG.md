@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.1](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/compare/v1.2.0...v1.2.1) (2026-11-21)
+
+### Bug Fixes
+
+* **config:** añade F2B_REPEAT_OFFENDER_JAILS con F2B_PERMANENT_JAILS como alias ([7273028](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/727302867948bc8479b6e4aff2a64e01e3abe5b8))
+* **notifier:** aviso de reincidente en lugar de "bloqueada permanentemente" ([952aa4f](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/952aa4fecae446557683442d2a8e4a6bc5a1c128))
+
 ## 1.2.0 (2026-11-14)
 
 ### Features
