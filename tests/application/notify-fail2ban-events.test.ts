@@ -58,6 +58,11 @@ describe("NotifyFail2banEventsUseCase", () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4", "recidive") });
     expect(ctx.notifier.sent[0]?.text).toContain("reincidente");
     expect(ctx.notifier.sent[0]?.text).not.toContain("permanentemente");
+    expect(ctx.logger.entries).toContainEqual({
+      level: "info",
+      message: "Bloqueo de reincidente notificado.",
+      meta: { ip: "1.2.3.4", jail: "recidive", repeatOffender: true },
+    });
     expect(ctx.counterStore.state).toEqual({
       daily: 0,
       permanent: 1,

@@ -4,7 +4,7 @@ import { getMessages } from "../../src/domain/services/message-format.ts";
 const es = getMessages("es");
 const en = getMessages("en");
 
-describe("message-format (es: paridad byte a byte)", () => {
+describe("message-format (es: paridad byte a byte, salvo el aviso de reincidente)", () => {
   it("ban normal (f2b.py:115)", () => {
     expect(es.ban("1.2.3.4", "sshd")).toBe(
       '🔒 IP <span class="tg-spoiler">1.2.3.4</span> ha sido <b>bloqueada</b> por <b><i>sshd</i></b>.',
