@@ -71,41 +71,26 @@ describe("loadConfig", () => {
   describe("jails de reincidentes", () => {
     const base = { TRANSPORT: "gateway", TELEGRAM_CHAT_ID: "1" };
 
-    it("F2B_PERMANENT_JAILS (alias antiguo) vacío ⇒ lista vacía; presente ⇒ lista", () => {
-      expect(loadConfig({ ...base, F2B_PERMANENT_JAILS: "" }).repeatOffenderJails).toEqual([]);
-      expect(
-        loadConfig({ ...base, F2B_PERMANENT_JAILS: "recidive, sshd" }).repeatOffenderJails,
-      ).toEqual(["recidive", "sshd"]);
-    });
-
-    it("ausentes ambas ⇒ default recidive", () => {
+    it("ausente ⇒ default recidive", () => {
       expect(loadConfig(base).repeatOffenderJails).toEqual(["recidive"]);
     });
 
-    it("solo F2B_REPEAT_OFFENDER_JAILS ⇒ esa lista", () => {
+    it("presente ⇒ esa lista", () => {
       expect(
-        loadConfig({ ...base, F2B_REPEAT_OFFENDER_JAILS: "recidive" }).repeatOffenderJails,
-      ).toEqual(["recidive"]);
+        loadConfig({ ...base, F2B_REPEAT_OFFENDER_JAILS: "recidive, sshd" }).repeatOffenderJails,
+      ).toEqual(["recidive", "sshd"]);
     });
 
-    it("ambas ⇒ gana F2B_REPEAT_OFFENDER_JAILS", () => {
-      expect(
-        loadConfig({
-          ...base,
-          F2B_REPEAT_OFFENDER_JAILS: "a",
-          F2B_PERMANENT_JAILS: "b",
-        }).repeatOffenderJails,
-      ).toEqual(["a"]);
+    it("vacía ⇒ lista vacía", () => {
+      expect(loadConfig({ ...base, F2B_REPEAT_OFFENDER_JAILS: "" }).repeatOffenderJails).toEqual(
+        [],
+      );
     });
 
-    it("F2B_REPEAT_OFFENDER_JAILS vacío gana al alias ⇒ lista vacía", () => {
-      expect(
-        loadConfig({
-          ...base,
-          F2B_REPEAT_OFFENDER_JAILS: "",
-          F2B_PERMANENT_JAILS: "recidive",
-        }).repeatOffenderJails,
-      ).toEqual([]);
+    it("el nombre antiguo F2B_PERMANENT_JAILS se ignora ⇒ default recidive", () => {
+      expect(loadConfig({ ...base, F2B_PERMANENT_JAILS: "sshd" }).repeatOffenderJails).toEqual([
+        "recidive",
+      ]);
     });
   });
 

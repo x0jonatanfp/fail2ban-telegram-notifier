@@ -183,15 +183,12 @@ export function loadConfig(env: Env = process.env): AppConfig {
   const gatewayReregisterMs = reader.int("GATEWAY_REREGISTER_MS", 60000, { min: 0 });
 
   const fail2banLogPath = reader.str("FAIL2BAN_LOG_PATH", "/var/log/fail2ban.log");
-  // Precedencia: F2B_REPEAT_OFFENDER_JAILS, luego el alias antiguo
-  // F2B_PERMANENT_JAILS, luego el default. Si la variable existe pero está
-  // vacía → lista vacía (permite desactivar explícitamente el conjunto).
+  // Si la variable existe pero está vacía → lista vacía (permite desactivar
+  // explícitamente el conjunto); si no existe → default.
   const repeatOffenderJails =
     env.F2B_REPEAT_OFFENDER_JAILS !== undefined
       ? reader.list("F2B_REPEAT_OFFENDER_JAILS")
-      : env.F2B_PERMANENT_JAILS !== undefined
-        ? reader.list("F2B_PERMANENT_JAILS")
-        : ["recidive"];
+      : ["recidive"];
   const ignoreJails = reader.list("F2B_IGNORE_JAILS");
   const ignoreIps = reader.list("F2B_IGNORE_IPS");
   const suppressShutdownFlush = reader.bool("F2B_SUPPRESS_SHUTDOWN_FLUSH", true);
