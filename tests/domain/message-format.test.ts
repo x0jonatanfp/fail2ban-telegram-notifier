@@ -47,7 +47,7 @@ describe("message-format (es: paridad byte a byte, salvo el aviso de reincidente
   it("título y teclado del contador (f2b.py:164-173)", () => {
     expect(es.counterTitle()).toBe("<b>📊 CONTADOR DE BLOQUEOS</b>");
     expect(
-      es.counterKeyboard({ daily: 3, permanent: 1, total: 10, last: "12:34:56" }),
+      es.counterKeyboard({ daily: 3, repeatOffenders: 1, total: 10, last: "12:34:56" }),
     ).toEqual({
       inline_keyboard: [
         [{ text: "📈 Diarios: 3", callback_data: "noop" }],
@@ -61,7 +61,7 @@ describe("message-format (es: paridad byte a byte, salvo el aviso de reincidente
   it("teclado del contador con last nulo usa '-'", () => {
     const keyboard = es.counterKeyboard({
       daily: 0,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });
@@ -70,7 +70,7 @@ describe("message-format (es: paridad byte a byte, salvo el aviso de reincidente
 
   it("título y teclado de reinicio (f2b.py:192-200)", () => {
     expect(es.resetTitle()).toBe("<b>🔄 ¡CONTADOR REINICIADO!</b>");
-    expect(es.resetKeyboard({ daily: 3, permanent: 1, total: 10 })).toEqual({
+    expect(es.resetKeyboard({ daily: 3, repeatOffenders: 1, total: 10 })).toEqual({
       inline_keyboard: [
         [{ text: "📊 Diarios: 3", callback_data: "noop" }],
         [{ text: "🚫 Reincidentes: 1", callback_data: "noop" }],
@@ -138,7 +138,7 @@ describe("message-format (en: traducción)", () => {
     });
     expect(en.counterTitle()).toBe("<b>📊 BAN COUNTER</b>");
     expect(
-      en.counterKeyboard({ daily: 3, permanent: 1, total: 10, last: "12:34:56" }),
+      en.counterKeyboard({ daily: 3, repeatOffenders: 1, total: 10, last: "12:34:56" }),
     ).toEqual({
       inline_keyboard: [
         [{ text: "📈 Daily: 3", callback_data: "noop" }],
@@ -148,7 +148,7 @@ describe("message-format (en: traducción)", () => {
       ],
     });
     expect(en.resetTitle()).toBe("<b>🔄 COUNTER RESET!</b>");
-    expect(en.resetKeyboard({ daily: 3, permanent: 1, total: 10 })).toEqual({
+    expect(en.resetKeyboard({ daily: 3, repeatOffenders: 1, total: 10 })).toEqual({
       inline_keyboard: [
         [{ text: "📈 Daily: 3", callback_data: "noop" }],
         [{ text: "🚫 Reoffenders: 1", callback_data: "noop" }],

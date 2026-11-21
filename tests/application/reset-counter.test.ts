@@ -8,7 +8,7 @@ describe("ResetCounterUseCase", () => {
     const notifier = new FakeNotifier();
     const counterStore = new InMemoryCounterStore({
       daily: 3,
-      permanent: 2,
+      repeatOffenders: 2,
       total: 10,
       last: "09:00:00",
     });
@@ -25,7 +25,7 @@ describe("ResetCounterUseCase", () => {
 
     expect(result.next).toEqual({
       daily: 0,
-      permanent: 2,
+      repeatOffenders: 2,
       total: 13,
       last: "00:00:00",
     });

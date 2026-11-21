@@ -118,7 +118,7 @@ describe("e2e: fail2ban → adaptador → servidor HTTP local", () => {
     expect(repeatText).not.toContain("permanentemente");
     // El contador se actualiza DESPUÉS de enviar: esperamos a que persista.
     await vi.waitFor(async () => {
-      expect(await counterStore.load()).toMatchObject({ daily: 1, permanent: 1 });
+      expect(await counterStore.load()).toMatchObject({ daily: 1, repeatOffenders: 1 });
     });
   });
 
@@ -137,7 +137,7 @@ describe("e2e: fail2ban → adaptador → servidor HTTP local", () => {
       parse_mode: "HTML",
     });
     await vi.waitFor(async () => {
-      expect(await counterStore.load()).toMatchObject({ daily: 1, permanent: 1 });
+      expect(await counterStore.load()).toMatchObject({ daily: 1, repeatOffenders: 1 });
     });
   });
 });

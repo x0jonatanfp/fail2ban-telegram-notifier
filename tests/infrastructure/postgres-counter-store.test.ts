@@ -38,13 +38,13 @@ describe("rowToCounterState", () => {
   it("mapea las columnas heredadas a la entidad de dominio", () => {
     expect(
       rowToCounterState({ count: 3, last: "12:00:00", total_bans: 10, weekly: 1 }),
-    ).toEqual({ daily: 3, permanent: 1, total: 10, last: "12:00:00" });
+    ).toEqual({ daily: 3, repeatOffenders: 1, total: 10, last: "12:00:00" });
   });
 
   it("sin fila devuelve estado inicial", () => {
     expect(rowToCounterState(undefined)).toEqual({
       daily: 0,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });
@@ -58,7 +58,7 @@ describe("PostgresCounterStore", () => {
 
     const state = await store.load();
 
-    expect(state).toEqual({ daily: 5, permanent: 2, total: 20, last: "10:00:00" });
+    expect(state).toEqual({ daily: 5, repeatOffenders: 2, total: 20, last: "10:00:00" });
     expect(fake.queries[0]?.sql).toContain("CREATE TABLE IF NOT EXISTS f2b_stats");
     expect(fake.queries.some((q) => q.sql.startsWith("SELECT count"))).toBe(true);
   });
@@ -67,7 +67,7 @@ describe("PostgresCounterStore", () => {
     const fake = fakePg({ idRows: [{ id: 7 }] });
     const store = new PostgresCounterStore(DB, createTestLogger(), async () => fake.module);
 
-    await store.save({ daily: 4, permanent: 2, total: 11, last: "13:00:00" });
+    await store.save({ daily: 4, repeatOffenders: 2, total: 11, last: "13:00:00" });
 
     const update = fake.queries.find((q) => q.sql.startsWith("UPDATE"));
     expect(update?.params).toEqual([4, "13:00:00", 11, 2, 7]);
@@ -77,7 +77,7 @@ describe("PostgresCounterStore", () => {
     const fake = fakePg({ idRows: [] });
     const store = new PostgresCounterStore(DB, createTestLogger(), async () => fake.module);
 
-    await store.save({ daily: 4, permanent: 2, total: 11, last: "13:00:00" });
+    await store.save({ daily: 4, repeatOffenders: 2, total: 11, last: "13:00:00" });
 
     const insert = fake.queries.find((q) => q.sql.startsWith("INSERT"));
     expect(insert?.params).toEqual([4, "13:00:00", 11, 2]);

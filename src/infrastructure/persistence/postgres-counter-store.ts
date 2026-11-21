@@ -7,8 +7,8 @@
 // Se reutiliza la tabla heredada `f2b_stats` con sus columnas originales
 // (`count`, `last`, `total_bans`, `weekly`, helpers.py:91,123,152) para no
 // romper los datos de producción existentes; el mapeo a la entidad de dominio
-// (`daily`/`permanent`/`total`) se hace aquí:
-//   count → daily, weekly → permanent, total_bans → total.
+// (`daily`/`repeatOffenders`/`total`) se hace aquí:
+//   count → daily, weekly → repeatOffenders, total_bans → total.
 import type { CounterState } from "../../domain/entities/counter-state.ts";
 import { emptyCounterState } from "../../domain/entities/counter-state.ts";
 import type { CounterStorePort } from "../../domain/ports/counter-store.ts";
@@ -55,7 +55,7 @@ export function rowToCounterState(row: Record<string, unknown> | undefined): Cou
   };
   return {
     daily: toNumber(row.count),
-    permanent: toNumber(row.weekly),
+    repeatOffenders: toNumber(row.weekly),
     total: toNumber(row.total_bans),
     last: row.last === null || row.last === undefined ? null : String(row.last),
   };
@@ -122,12 +122,12 @@ export class PostgresCounterStore implements CounterStorePort {
       if (row !== undefined) {
         await client.query(
           "UPDATE f2b_stats SET count=$1, last=$2::time, total_bans=$3, weekly=$4 WHERE id=$5",
-          [state.daily, state.last, state.total, state.permanent, row.id],
+          [state.daily, state.last, state.total, state.repeatOffenders, row.id],
         );
       } else {
         await client.query(
           "INSERT INTO f2b_stats (count, last, total_bans, weekly) VALUES ($1, $2::time, $3, $4)",
-          [state.daily, state.last, state.total, state.permanent],
+          [state.daily, state.last, state.total, state.repeatOffenders],
         );
       }
       await client.query("COMMIT");

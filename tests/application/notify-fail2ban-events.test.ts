@@ -48,7 +48,7 @@ describe("NotifyFail2banEventsUseCase", () => {
     );
     expect(ctx.counterStore.state).toEqual({
       daily: 1,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: "12:34:56",
     });
@@ -65,19 +65,19 @@ describe("NotifyFail2banEventsUseCase", () => {
     });
     expect(ctx.counterStore.state).toEqual({
       daily: 0,
-      permanent: 1,
+      repeatOffenders: 1,
       total: 0,
       last: "12:34:56",
     });
   });
 
   it("notifica Unban sin tocar el contador", async () => {
-    ctx.counterStore.state = { daily: 2, permanent: 1, total: 5, last: "09:00:00" };
+    ctx.counterStore.state = { daily: 2, repeatOffenders: 1, total: 5, last: "09:00:00" };
     await ctx.useCase.handle({ kind: "line", raw: unbanLine("1.2.3.4") });
     expect(ctx.notifier.sent[0]?.text).toContain("desbloqueada");
     expect(ctx.counterStore.state).toEqual({
       daily: 2,
-      permanent: 1,
+      repeatOffenders: 1,
       total: 5,
       last: "09:00:00",
     });

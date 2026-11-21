@@ -16,12 +16,12 @@ export interface ChatIdInput {
   threadId?: number;
 }
 
-/** Datos mostrados por el teclado de reinicio (¡ojo: `daily`/`permanent` son los
+/** Datos mostrados por el teclado de reinicio (¡ojo: `daily`/`repeatOffenders` son los
  * valores ANTERIORES al reset y `total` el nuevo acumulado, igual que el
  * original en f2b.py:193-197 y scheduled_tasks.py:32-38). */
 export interface ResetKeyboardValues {
   daily: number;
-  permanent: number;
+  repeatOffenders: number;
   total: number;
 }
 
@@ -66,15 +66,15 @@ const NOOP = "noop";
 
 function counterRows(
   daily: number,
-  permanent: number,
+  repeatOffenders: number,
   total: number,
   last: string | null,
-  labels: { daily: string; permanent: string; total: string; last: string },
+  labels: { daily: string; repeatOffenders: string; total: string; last: string },
 ): InlineKeyboardMarkup {
   return {
     inline_keyboard: [
       [{ text: `${labels.daily}: ${daily}`, callback_data: NOOP }],
-      [{ text: `${labels.permanent}: ${permanent}`, callback_data: NOOP }],
+      [{ text: `${labels.repeatOffenders}: ${repeatOffenders}`, callback_data: NOOP }],
       [{ text: `${labels.total}: ${total}`, callback_data: NOOP }],
       [{ text: `${labels.last}: ${displayLast(last)}`, callback_data: NOOP }],
     ],
@@ -103,9 +103,9 @@ const es: MessageTemplates = {
   }),
   counterTitle: () => "<b>📊 CONTADOR DE BLOQUEOS</b>",
   counterKeyboard: (state) =>
-    counterRows(state.daily, state.permanent, state.total, state.last, {
+    counterRows(state.daily, state.repeatOffenders, state.total, state.last, {
       daily: "📈 Diarios",
-      permanent: "🚫 Reincidentes",
+      repeatOffenders: "🚫 Reincidentes",
       total: "🔒 Totales",
       last: "⏲️ Última acción",
     }),
@@ -113,7 +113,7 @@ const es: MessageTemplates = {
   resetKeyboard: (values) => ({
     inline_keyboard: [
       [{ text: `📊 Diarios: ${values.daily}`, callback_data: NOOP }],
-      [{ text: `🚫 Reincidentes: ${values.permanent}`, callback_data: NOOP }],
+      [{ text: `🚫 Reincidentes: ${values.repeatOffenders}`, callback_data: NOOP }],
       [{ text: `🔒 Totales: ${values.total}`, callback_data: NOOP }],
     ],
   }),
@@ -167,9 +167,9 @@ const en: MessageTemplates = {
   }),
   counterTitle: () => "<b>📊 BAN COUNTER</b>",
   counterKeyboard: (state) =>
-    counterRows(state.daily, state.permanent, state.total, state.last, {
+    counterRows(state.daily, state.repeatOffenders, state.total, state.last, {
       daily: "📈 Daily",
-      permanent: "🚫 Reoffenders",
+      repeatOffenders: "🚫 Reoffenders",
       total: "🔒 Total",
       last: "⏲️ Last action",
     }),
@@ -177,7 +177,7 @@ const en: MessageTemplates = {
   resetKeyboard: (values) => ({
     inline_keyboard: [
       [{ text: `📈 Daily: ${values.daily}`, callback_data: NOOP }],
-      [{ text: `🚫 Reoffenders: ${values.permanent}`, callback_data: NOOP }],
+      [{ text: `🚫 Reoffenders: ${values.repeatOffenders}`, callback_data: NOOP }],
       [{ text: `🔒 Total: ${values.total}`, callback_data: NOOP }],
     ],
   }),

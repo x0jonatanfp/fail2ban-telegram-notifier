@@ -13,7 +13,7 @@ function build() {
   const notifier = new FakeNotifier();
   const counterStore = new InMemoryCounterStore({
     daily: 4,
-    permanent: 2,
+    repeatOffenders: 2,
     total: 10,
     last: "11:00:00",
   });
@@ -141,7 +141,7 @@ describe("HandleCommandUseCase", () => {
     expect(ctx.notifier.answered).toEqual([{ callbackId: "cb-1" }]);
     expect(ctx.counterStore.state).toEqual({
       daily: 0,
-      permanent: 2,
+      repeatOffenders: 2,
       total: 14,
       last: "12:00:00",
     });

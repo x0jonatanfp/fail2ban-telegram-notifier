@@ -7,24 +7,24 @@ const repeatOffender = new Set(["recidive"]);
 describe("counter-rules", () => {
   it("ban normal: daily+1 y last=ahora", () => {
     const next = applyBan(emptyCounterState(), "sshd", repeatOffender, "10:00:00");
-    expect(next).toEqual({ daily: 1, permanent: 0, total: 0, last: "10:00:00" });
+    expect(next).toEqual({ daily: 1, repeatOffenders: 0, total: 0, last: "10:00:00" });
   });
 
-  it("ban recidive: permanent+1 y last=ahora (f2b.py:105,111)", () => {
+  it("ban recidive: repeatOffenders+1 y last=ahora (f2b.py:105,111)", () => {
     const next = applyBan(
-      { daily: 2, permanent: 1, total: 5, last: "09:00:00" },
+      { daily: 2, repeatOffenders: 1, total: 5, last: "09:00:00" },
       "recidive",
       repeatOffender,
       "10:00:00",
     );
-    expect(next).toEqual({ daily: 2, permanent: 2, total: 5, last: "10:00:00" });
+    expect(next).toEqual({ daily: 2, repeatOffenders: 2, total: 5, last: "10:00:00" });
   });
 
-  it("reset: total += daily, daily=0, permanent intacto, last=ahora", () => {
+  it("reset: total += daily, daily=0, repeatOffenders intacto, last=ahora", () => {
     const next = applyReset(
-      { daily: 3, permanent: 2, total: 10, last: "09:00:00" },
+      { daily: 3, repeatOffenders: 2, total: 10, last: "09:00:00" },
       "00:00:00",
     );
-    expect(next).toEqual({ daily: 0, permanent: 2, total: 13, last: "00:00:00" });
+    expect(next).toEqual({ daily: 0, repeatOffenders: 2, total: 13, last: "00:00:00" });
   });
 });

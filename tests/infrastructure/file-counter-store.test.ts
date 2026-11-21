@@ -24,7 +24,7 @@ describe("FileCounterStore", () => {
     const store = new FileCounterStore(join(dir, "nested", "counter.json"), createTestLogger());
     expect(await store.load()).toEqual({
       daily: 0,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });
@@ -34,10 +34,27 @@ describe("FileCounterStore", () => {
     const dir = await tempDir();
     const file = join(dir, "nested", "counter.json");
     const store = new FileCounterStore(file, createTestLogger());
-    await store.save({ daily: 3, permanent: 1, total: 10, last: "12:00:00" });
+    await store.save({ daily: 3, repeatOffenders: 1, total: 10, last: "12:00:00" });
     expect(await store.load()).toEqual({
       daily: 3,
-      permanent: 1,
+      repeatOffenders: 1,
+      total: 10,
+      last: "12:00:00",
+    });
+  });
+
+  it("un fichero antiguo con la clave permanent no se migra: repeatOffenders parte de 0", async () => {
+    const dir = await tempDir();
+    const file = join(dir, "counter.json");
+    await writeFile(
+      file,
+      JSON.stringify({ daily: 3, permanent: 7, total: 10, last: "12:00:00" }),
+      "utf8",
+    );
+    const store = new FileCounterStore(file, createTestLogger());
+    expect(await store.load()).toEqual({
+      daily: 3,
+      repeatOffenders: 0,
       total: 10,
       last: "12:00:00",
     });
@@ -51,7 +68,7 @@ describe("FileCounterStore", () => {
     const store = new FileCounterStore(file, logger);
     expect(await store.load()).toEqual({
       daily: 0,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });
@@ -63,15 +80,15 @@ describe("FileCounterStore", () => {
     const file = join(dir, "counter.json");
     const store = new FileCounterStore(file, createTestLogger());
     await Promise.all([
-      store.save({ daily: 1, permanent: 0, total: 0, last: "a" }),
-      store.save({ daily: 2, permanent: 0, total: 0, last: "b" }),
-      store.save({ daily: 3, permanent: 0, total: 0, last: "c" }),
+      store.save({ daily: 1, repeatOffenders: 0, total: 0, last: "a" }),
+      store.save({ daily: 2, repeatOffenders: 0, total: 0, last: "b" }),
+      store.save({ daily: 3, repeatOffenders: 0, total: 0, last: "c" }),
     ]);
     const raw = await readFile(file, "utf8");
     expect(() => JSON.parse(raw)).not.toThrow();
     expect(await store.load()).toEqual({
       daily: 3,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: "c",
     });
@@ -82,13 +99,13 @@ describe("normalizeCounterState", () => {
   it("tolera basura y campos parciales", () => {
     expect(normalizeCounterState(null)).toEqual({
       daily: 0,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });
     expect(normalizeCounterState({ daily: 2, last: 5 })).toEqual({
       daily: 2,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 0,
       last: null,
     });

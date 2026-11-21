@@ -1,8 +1,8 @@
 // Caso de uso: reiniciar el contador (botón `not_touch` y reinicio diario).
 // Réplica de `handle_do_not_touch` (f2b.py:182-200) y del bloque de
 // `scheduled_tasks` (scheduled_tasks.py:17-39):
-//   total += daily; daily = 0; last = ahora; permanent se conserva.
-// El mensaje de reinicio muestra los valores ANTERIORES de daily/permanent y el
+//   total += daily; daily = 0; last = ahora; repeatOffenders se conserva.
+// El mensaje de reinicio muestra los valores ANTERIORES de daily/repeatOffenders y el
 // NUEVO total (por eso se construye con `previous` + `next`).
 import type { CounterState } from "../domain/entities/counter-state.ts";
 import type { NotifierPort } from "../domain/ports/notifier.ts";
@@ -42,7 +42,7 @@ export class ResetCounterUseCase {
       {
         replyMarkup: this.deps.messages.resetKeyboard({
           daily: previous.daily,
-          permanent: previous.permanent,
+          repeatOffenders: previous.repeatOffenders,
           total: next.total,
         }),
         ...(this.deps.threadId !== undefined ? { threadId: this.deps.threadId } : {}),
@@ -51,7 +51,7 @@ export class ResetCounterUseCase {
 
     this.deps.logger.info("Contador reiniciado.", {
       daily: next.daily,
-      permanent: next.permanent,
+      repeatOffenders: next.repeatOffenders,
       total: next.total,
     });
     return { previous, next };

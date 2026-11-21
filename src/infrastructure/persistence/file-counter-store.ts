@@ -23,7 +23,7 @@ export function normalizeCounterState(value: unknown): CounterState {
     typeof input === "number" && Number.isFinite(input) ? input : 0;
   return {
     daily: toNumber(record.daily),
-    permanent: toNumber(record.permanent),
+    repeatOffenders: toNumber(record.repeatOffenders),
     total: toNumber(record.total),
     last: typeof record.last === "string" ? record.last : null,
   };

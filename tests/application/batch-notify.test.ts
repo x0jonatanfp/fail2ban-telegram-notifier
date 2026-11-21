@@ -66,7 +66,7 @@ describe("NotifyFail2banEventsUseCase (batch)", () => {
 
     expect(ctx.counterStore.saves).toHaveLength(1);
     expect(ctx.counterStore.state.daily).toBe(1);
-    expect(ctx.counterStore.state.permanent).toBe(1);
+    expect(ctx.counterStore.state.repeatOffenders).toBe(1);
   });
 
   it("ventana vacía no envía nada", async () => {

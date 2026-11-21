@@ -11,7 +11,7 @@ describe("ShowCounterUseCase", () => {
     const notifier = new FakeNotifier();
     const counterStore = new InMemoryCounterStore({
       daily: 3,
-      permanent: 1,
+      repeatOffenders: 1,
       total: 10,
       last: "12:34:56",
     });

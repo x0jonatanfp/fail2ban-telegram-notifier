@@ -22,7 +22,7 @@ describe("DailyResetScheduler", () => {
     const notifier = new FakeNotifier();
     const counterStore = new InMemoryCounterStore({
       daily: 5,
-      permanent: 2,
+      repeatOffenders: 2,
       total: 10,
       last: "08:00:00",
     });
@@ -62,7 +62,7 @@ describe("DailyResetScheduler", () => {
     });
     expect(counterStore.state).toEqual({
       daily: 0,
-      permanent: 2,
+      repeatOffenders: 2,
       total: 15,
       last: "00:00:00",
     });
@@ -120,7 +120,7 @@ describe("DailyResetScheduler", () => {
     const notifier = new FakeNotifier();
     const counterStore = new InMemoryCounterStore({
       daily: 5,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 10,
       last: "08:00:00",
     });
@@ -165,7 +165,7 @@ describe("DailyResetScheduler", () => {
     const logger = createTestLogger();
     const counterStore = new InMemoryCounterStore({
       daily: 5,
-      permanent: 0,
+      repeatOffenders: 0,
       total: 10,
       last: "08:00:00",
     });
