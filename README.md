@@ -21,7 +21,7 @@
 ## Features
 
 - **Real-time log tailing** — follows `fail2ban.log` and survives log rotation (detected by size **and** by inode).
-- **Ban, repeat-offender ban and unban alerts** — jails configured as *repeat-offender* jails (e.g. `recidive`) get a distinct message. It does not claim the ban is permanent: fail2ban's `recidive` jail bans for a limited time by default.
+- **Ban, repeat-offender ban and unban alerts** — jails configured as *repeat-offender* jails (e.g. `recidive`) get a distinct message. It does not claim the ban lasts forever: fail2ban's `recidive` jail bans for a limited time by default.
 - **No false unbans** — suppresses the mass of `Unban` lines fail2ban emits when it shuts down or restarts.
 - **Ban counter** — per-day, reoffenders and total, with an automatic reset at local midnight and a manual reset button.
 - **Slash commands** — `/f2b` (settings), `/chat_id` (find your chat/topic ids), `/start`, `/help`.
@@ -106,7 +106,7 @@ All configuration is done through environment variables (see [`.env.example`](.e
 | Variable | Default | Description |
 |---|---|---|
 | `FAIL2BAN_LOG_PATH` | `/var/log/fail2ban.log` | Log file to follow. |
-| `F2B_REPEAT_OFFENDER_JAILS` | `recidive` | Comma-separated jails treated as repeat-offender jails (distinct message + reoffender counter). If defined, an empty value means none. The older `F2B_PERMANENT_JAILS` is still accepted as an alias when this one is not defined. |
+| `F2B_REPEAT_OFFENDER_JAILS` | `recidive` | Comma-separated jails treated as repeat-offender jails (distinct message + reoffender counter). If defined, an empty value means none. |
 | `F2B_IGNORE_JAILS` | *(empty)* | Comma-separated jails to ignore completely. |
 | `F2B_IGNORE_IPS` | *(empty)* | Comma-separated IPs to ignore completely. |
 | `F2B_SUPPRESS_SHUTDOWN_FLUSH` | `true` | Suppress the fake `Unban` flood emitted when fail2ban stops/restarts. |
@@ -250,6 +250,12 @@ The counter is updated once per successfully sent summary with all its bans (sam
    If you inject secrets with your own tool, replace `EnvironmentFile` with your mechanism — the process only needs the environment variables described above.
 
 ---
+
+## Upgrading to 2.0.0
+
+- `F2B_PERMANENT_JAILS` is removed and no longer read. Rename it to `F2B_REPEAT_OFFENDER_JAILS`.
+- With `COUNTER_BACKEND=file`, the repeat-offender counter stored in the JSON file starts from zero (the old `permanent` key is not migrated).
+- With `COUNTER_BACKEND=postgres` nothing changes.
 
 ## Troubleshooting
 
