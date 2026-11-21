@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.0](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/compare/v1.2.1...v2.0.0) (2026-11-21)
+
+### ⚠ BREAKING CHANGES
+
+* **counter:** el contador de reincidentes guardado en fichero (clave permanent) no se migra y empieza de cero; con Postgres no cambia nada.
+* **config:** F2B_PERMANENT_JAILS ya no se lee; usa F2B_REPEAT_OFFENDER_JAILS.
+
+* **counter:** renombra el contador permanent a repeatOffenders ([089e2bf](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/089e2bfa2200e8dc36dc1c89e87dbb2a8ef63f8b))
+
+### Features
+
+* **config:** elimina F2B_PERMANENT_JAILS ([a4c23f2](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/commit/a4c23f21118f904d6e3292186f72c80c8b5f9ade))
+
 ## [1.2.1](https://github.com/x0jonatanfp/fail2ban-telegram-notifier/compare/v1.2.0...v1.2.1) (2026-11-21)
 
 ### Bug Fixes
