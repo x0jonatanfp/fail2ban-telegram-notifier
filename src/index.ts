@@ -121,7 +121,7 @@ export function createRuntime(config: AppConfig): Runtime {
     logger,
     chatId: config.chatId,
     ...(threadId !== undefined ? { threadId } : {}),
-    repeatOffenderJails: new Set(config.permanentJails),
+    repeatOffenderJails: new Set(config.repeatOffenderJails),
     ignoreJails: new Set(config.ignoreJails),
     ignoreIps: new Set(config.ignoreIps),
     suppressShutdownFlush: config.suppressShutdownFlush,

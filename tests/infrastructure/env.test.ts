@@ -18,7 +18,7 @@ describe("loadConfig", () => {
     expect(config.webhookPort).toBe(14120);
     expect(config.gatewayReregisterMs).toBe(60000);
     expect(config.fail2banLogPath).toBe("/var/log/fail2ban.log");
-    expect(config.permanentJails).toEqual(["recidive"]);
+    expect(config.repeatOffenderJails).toEqual(["recidive"]);
     expect(config.ignoreJails).toEqual([]);
     expect(config.suppressShutdownFlush).toBe(true);
     expect(config.pollIntervalMs).toBe(1000);
@@ -68,20 +68,45 @@ describe("loadConfig", () => {
     }
   });
 
-  it("F2B_PERMANENT_JAILS vacío ⇒ lista vacía; ausente ⇒ default", () => {
-    const empty = loadConfig({
-      TRANSPORT: "gateway",
-      TELEGRAM_CHAT_ID: "1",
-      F2B_PERMANENT_JAILS: "",
-    });
-    expect(empty.permanentJails).toEqual([]);
+  describe("jails de reincidentes", () => {
+    const base = { TRANSPORT: "gateway", TELEGRAM_CHAT_ID: "1" };
 
-    const present = loadConfig({
-      TRANSPORT: "gateway",
-      TELEGRAM_CHAT_ID: "1",
-      F2B_PERMANENT_JAILS: "recidive, sshd",
+    it("F2B_PERMANENT_JAILS (alias antiguo) vacío ⇒ lista vacía; presente ⇒ lista", () => {
+      expect(loadConfig({ ...base, F2B_PERMANENT_JAILS: "" }).repeatOffenderJails).toEqual([]);
+      expect(
+        loadConfig({ ...base, F2B_PERMANENT_JAILS: "recidive, sshd" }).repeatOffenderJails,
+      ).toEqual(["recidive", "sshd"]);
     });
-    expect(present.permanentJails).toEqual(["recidive", "sshd"]);
+
+    it("ausentes ambas ⇒ default recidive", () => {
+      expect(loadConfig(base).repeatOffenderJails).toEqual(["recidive"]);
+    });
+
+    it("solo F2B_REPEAT_OFFENDER_JAILS ⇒ esa lista", () => {
+      expect(
+        loadConfig({ ...base, F2B_REPEAT_OFFENDER_JAILS: "recidive" }).repeatOffenderJails,
+      ).toEqual(["recidive"]);
+    });
+
+    it("ambas ⇒ gana F2B_REPEAT_OFFENDER_JAILS", () => {
+      expect(
+        loadConfig({
+          ...base,
+          F2B_REPEAT_OFFENDER_JAILS: "a",
+          F2B_PERMANENT_JAILS: "b",
+        }).repeatOffenderJails,
+      ).toEqual(["a"]);
+    });
+
+    it("F2B_REPEAT_OFFENDER_JAILS vacío gana al alias ⇒ lista vacía", () => {
+      expect(
+        loadConfig({
+          ...base,
+          F2B_REPEAT_OFFENDER_JAILS: "",
+          F2B_PERMANENT_JAILS: "recidive",
+        }).repeatOffenderJails,
+      ).toEqual([]);
+    });
   });
 
   it("parsea thread id, booleanos y listas de filtros", () => {
