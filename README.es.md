@@ -21,7 +21,7 @@
 ## Funcionalidades
 
 - **Seguimiento del log en tiempo real** — sigue `fail2ban.log` y sobrevive a la rotación (detectada por tamaño **y** por inodo).
-- **Avisos de bloqueo, bloqueo permanente y desbloqueo** — las jails configuradas como *permanentes* (p. ej. `recidive`) reciben un mensaje distinto.
+- **Avisos de bloqueo, bloqueo de reincidentes y desbloqueo** — las jails configuradas como jails de reincidentes (p. ej. `recidive`) reciben un mensaje distinto. No afirma que el bloqueo sea permanente: la jail `recidive` de fail2ban bloquea por tiempo limitado por defecto.
 - **Sin desbloqueos falsos** — suprime la avalancha de líneas `Unban` que fail2ban emite al apagarse o reiniciarse.
 - **Contador de bloqueos** — diarios, reincidentes y totales, con reinicio automático a medianoche local y botón de reinicio manual.
 - **Comandos** — `/f2b` (configuración), `/chat_id` (averigua tus ids de chat/tema), `/start`, `/help`.
@@ -106,7 +106,7 @@ Toda la configuración se hace por variables de entorno (ver [`.env.example`](.e
 | Variable | Por defecto | Descripción |
 |---|---|---|
 | `FAIL2BAN_LOG_PATH` | `/var/log/fail2ban.log` | Fichero de log a seguir. |
-| `F2B_PERMANENT_JAILS` | `recidive` | Jails separadas por coma tratadas como *permanentes* (mensaje distinto + contador de reincidentes). |
+| `F2B_REPEAT_OFFENDER_JAILS` | `recidive` | Jails separadas por coma tratadas como jails de reincidentes (mensaje distinto + contador de reincidentes). Si se define, vacía significa ninguna. La antigua `F2B_PERMANENT_JAILS` se sigue aceptando como alias si esta no está definida. |
 | `F2B_IGNORE_JAILS` | *(vacío)* | Jails separadas por coma a ignorar por completo. |
 | `F2B_IGNORE_IPS` | *(vacío)* | IPs separadas por coma a ignorar por completo. |
 | `F2B_SUPPRESS_SHUTDOWN_FLUSH` | `true` | Suprime la avalancha de `Unban` falsos emitida al parar/reiniciar fail2ban. |
@@ -189,8 +189,8 @@ En este modo no hace falta token de bot: lo guarda el gateway. Asegúrate de que
 
 El contador tiene tres números más la hora de la última acción:
 
-- **Diarios** (`📈`) — bloqueos de jails *no permanentes* desde el último reinicio.
-- **Reincidentes** (`🚫`) — bloqueos de las jails listadas en `F2B_PERMANENT_JAILS` (p. ej. `recidive`). No se reinician solos.
+- **Diarios** (`📈`) — bloqueos de jails que *no* son de reincidentes desde el último reinicio.
+- **Reincidentes** (`🚫`) — bloqueos de las jails listadas en `F2B_REPEAT_OFFENDER_JAILS` (p. ej. `recidive`). No se reinician solos.
 - **Totales** (`🔒`) — acumulado de `diarios` a través de los reinicios.
 - **Última acción** (`⏲️`) — hora local (`HH:MM:SS`) del último evento que tocó el contador.
 

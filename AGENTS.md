@@ -4,7 +4,7 @@ Guide for coding agents. What it is, how it is installed and how it is configure
 
 ## What it is
 
-TypeScript service on Node.js that follows the fail2ban log and sends bans, permanent bans and unbans to Telegram. It keeps a counter (daily, repeat offenders and total) that resets at local midnight. It has two transports: direct Bot API (`TRANSPORT=direct`) and a local tg-gateway (`TRANSPORT=gateway`). **It has no runtime dependencies**: only Node and, for building, esbuild in development.
+TypeScript service on Node.js that follows the fail2ban log and sends bans, repeat-offender bans and unbans to Telegram. It keeps a counter (daily, repeat offenders and total) that resets at local midnight. It has two transports: direct Bot API (`TRANSPORT=direct`) and a local tg-gateway (`TRANSPORT=gateway`). **It has no runtime dependencies**: only Node and, for building, esbuild in development.
 
 ## Architecture
 
