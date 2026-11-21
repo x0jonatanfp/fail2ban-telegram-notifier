@@ -70,6 +70,7 @@ describe("PostgresCounterStore", () => {
     await store.save({ daily: 4, repeatOffenders: 2, total: 11, last: "13:00:00" });
 
     const update = fake.queries.find((q) => q.sql.startsWith("UPDATE"));
+    expect(update?.sql).toContain("weekly=$4");
     expect(update?.params).toEqual([4, "13:00:00", 11, 2, 7]);
   });
 
@@ -80,6 +81,7 @@ describe("PostgresCounterStore", () => {
     await store.save({ daily: 4, repeatOffenders: 2, total: 11, last: "13:00:00" });
 
     const insert = fake.queries.find((q) => q.sql.startsWith("INSERT"));
+    expect(insert?.sql).toContain("weekly");
     expect(insert?.params).toEqual([4, "13:00:00", 11, 2]);
   });
 
