@@ -40,7 +40,7 @@ export interface NotifyFail2banEventsDeps {
   chatId: string;
   /** Tema destino; solo lo aplica el adaptador `direct`. */
   threadId?: number;
-  permanentJails: ReadonlySet<string>;
+  repeatOffenderJails: ReadonlySet<string>;
   ignoreJails: ReadonlySet<string>;
   ignoreIps: ReadonlySet<string>;
   suppressShutdownFlush: boolean;
@@ -295,7 +295,7 @@ export class NotifyFail2banEventsUseCase {
       const at = formatLocalTime(this.deps.now());
       let next = state;
       for (const ban of bans) {
-        next = applyBan(next, ban.jail, this.deps.permanentJails, at);
+        next = applyBan(next, ban.jail, this.deps.repeatOffenderJails, at);
       }
       // Solo guarda si hubo bans (los unbans no tocan el contador).
       if (bans.length > 0) await this.deps.counterStore.save(next);
@@ -324,19 +324,19 @@ export class NotifyFail2banEventsUseCase {
       // envío falla, el contador NO se actualiza.
       const state = await this.deps.counterStore.load();
       const at = formatLocalTime(this.deps.now());
-      const permanent = this.deps.permanentJails.has(jail);
-      const text = permanent
-        ? this.deps.messages.permanentBan(ip, jail)
+      const repeatOffender = this.deps.repeatOffenderJails.has(jail);
+      const text = repeatOffender
+        ? this.deps.messages.repeatOffenderBan(ip, jail)
         : this.deps.messages.ban(ip, jail);
 
       await this.deps.notifier.sendMessage(this.deps.chatId, text, this.sendOptions());
 
-      const next = applyBan(state, jail, this.deps.permanentJails, at);
+      const next = applyBan(state, jail, this.deps.repeatOffenderJails, at);
       await this.deps.counterStore.save(next);
 
       this.deps.logger.info(
-        permanent ? "Bloqueo permanente notificado." : "Bloqueo notificado.",
-        { ip, jail, permanent },
+        repeatOffender ? "Bloqueo de reincidente notificado." : "Bloqueo notificado.",
+        { ip, jail, repeatOffender },
       );
     } catch (error) {
       this.deps.logger.error("Error enviando mensaje de ban.", {

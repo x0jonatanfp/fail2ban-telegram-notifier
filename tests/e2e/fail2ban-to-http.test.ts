@@ -59,7 +59,7 @@ async function scenario(pick: (server: FakeServer) => NotifierPort) {
     messages: getMessages("es"),
     logger: createTestLogger(),
     chatId: "CHAT",
-    permanentJails: new Set(["recidive"]),
+    repeatOffenderJails: new Set(["recidive"]),
     ignoreJails: new Set(),
     ignoreIps: new Set(),
     suppressShutdownFlush: true,
@@ -113,7 +113,9 @@ describe("e2e: fail2ban → adaptador → servidor HTTP local", () => {
     expect((sendRequests[0]?.body as { text: string }).text).toBe(
       '🔒 IP <span class="tg-spoiler">203.0.113.7</span> ha sido <b>bloqueada</b> por <b><i>sshd</i></b>.',
     );
-    expect((sendRequests[1]?.body as { text: string }).text).toContain("permanentemente");
+    const repeatText = (sendRequests[1]?.body as { text: string }).text;
+    expect(repeatText).toContain("reincidente");
+    expect(repeatText).not.toContain("permanentemente");
     // El contador se actualiza DESPUÉS de enviar: esperamos a que persista.
     await vi.waitFor(async () => {
       expect(await counterStore.load()).toMatchObject({ daily: 1, permanent: 1 });

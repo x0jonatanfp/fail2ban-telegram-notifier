@@ -11,9 +11,9 @@ describe("message-format (es: paridad byte a byte)", () => {
     );
   });
 
-  it("ban permanente (f2b.py:109)", () => {
-    expect(es.permanentBan("1.2.3.4", "recidive")).toBe(
-      '🚫 IP <span class="tg-spoiler">1.2.3.4</span> ha sido bloqueada permanentemente por <i>recidive</i>.',
+  it("ban de reincidente", () => {
+    expect(es.repeatOffenderBan("1.2.3.4", "recidive")).toBe(
+      '🚫 IP <span class="tg-spoiler">1.2.3.4</span> <b>reincidente</b>: bloqueada por <i>recidive</i>.',
     );
   });
 
@@ -119,8 +119,8 @@ describe("message-format (en: traducción)", () => {
     expect(en.ban("1.2.3.4", "sshd")).toBe(
       '🔒 IP <span class="tg-spoiler">1.2.3.4</span> has been <b>banned</b> by <b><i>sshd</i></b>.',
     );
-    expect(en.permanentBan("1.2.3.4", "recidive")).toBe(
-      '🚫 IP <span class="tg-spoiler">1.2.3.4</span> has been permanently banned by <i>recidive</i>.',
+    expect(en.repeatOffenderBan("1.2.3.4", "recidive")).toBe(
+      '🚫 IP <span class="tg-spoiler">1.2.3.4</span> <b>repeat offender</b>: banned by <i>recidive</i>.',
     );
     expect(en.unban("1.2.3.4", "sshd")).toBe(
       '🌐 IP <span class="tg-spoiler">1.2.3.4</span> has been <b>unbanned</b> by <i>sshd</i>.',

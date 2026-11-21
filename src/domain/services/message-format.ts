@@ -27,7 +27,7 @@ export interface ResetKeyboardValues {
 
 export interface MessageTemplates {
   ban(ip: string, jail: string): string;
-  permanentBan(ip: string, jail: string): string;
+  repeatOffenderBan(ip: string, jail: string): string;
   unban(ip: string, jail: string): string;
   logRotationSize(): string;
   logRotationInode(): string;
@@ -84,8 +84,8 @@ function counterRows(
 const es: MessageTemplates = {
   ban: (ip, jail) =>
     `🔒 IP <span class="tg-spoiler">${ip}</span> ha sido <b>bloqueada</b> por <b><i>${jail}</i></b>.`,
-  permanentBan: (ip, jail) =>
-    `🚫 IP <span class="tg-spoiler">${ip}</span> ha sido bloqueada permanentemente por <i>${jail}</i>.`,
+  repeatOffenderBan: (ip, jail) =>
+    `🚫 IP <span class="tg-spoiler">${ip}</span> <b>reincidente</b>: bloqueada por <i>${jail}</i>.`,
   unban: (ip, jail) =>
     `🌐 IP <span class="tg-spoiler">${ip}</span> ha sido <b>desbloqueada</b> por <i>${jail}</i>.`,
   logRotationSize: () =>
@@ -150,8 +150,8 @@ const es: MessageTemplates = {
 const en: MessageTemplates = {
   ban: (ip, jail) =>
     `🔒 IP <span class="tg-spoiler">${ip}</span> has been <b>banned</b> by <b><i>${jail}</i></b>.`,
-  permanentBan: (ip, jail) =>
-    `🚫 IP <span class="tg-spoiler">${ip}</span> has been permanently banned by <i>${jail}</i>.`,
+  repeatOffenderBan: (ip, jail) =>
+    `🚫 IP <span class="tg-spoiler">${ip}</span> <b>repeat offender</b>: banned by <i>${jail}</i>.`,
   unban: (ip, jail) =>
     `🌐 IP <span class="tg-spoiler">${ip}</span> has been <b>unbanned</b> by <i>${jail}</i>.`,
   logRotationSize: () => "<b>🔄 Log rotation detected, reopening...</b>",

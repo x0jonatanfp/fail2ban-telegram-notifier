@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { applyBan, applyReset } from "../../src/domain/services/counter-rules.ts";
 import { emptyCounterState } from "../../src/domain/entities/counter-state.ts";
 
-const permanent = new Set(["recidive"]);
+const repeatOffender = new Set(["recidive"]);
 
 describe("counter-rules", () => {
   it("ban normal: daily+1 y last=ahora", () => {
-    const next = applyBan(emptyCounterState(), "sshd", permanent, "10:00:00");
+    const next = applyBan(emptyCounterState(), "sshd", repeatOffender, "10:00:00");
     expect(next).toEqual({ daily: 1, permanent: 0, total: 0, last: "10:00:00" });
   });
 
@@ -14,7 +14,7 @@ describe("counter-rules", () => {
     const next = applyBan(
       { daily: 2, permanent: 1, total: 5, last: "09:00:00" },
       "recidive",
-      permanent,
+      repeatOffender,
       "10:00:00",
     );
     expect(next).toEqual({ daily: 2, permanent: 2, total: 5, last: "10:00:00" });

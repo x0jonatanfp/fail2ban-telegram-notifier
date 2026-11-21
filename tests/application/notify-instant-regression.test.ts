@@ -15,7 +15,7 @@ describe("NotifyFail2banEventsUseCase (regresión instant por defecto)", () => {
       messages: getMessages("es"),
       logger: createTestLogger(),
       chatId: "CHAT",
-      permanentJails: new Set(["recidive"]),
+      repeatOffenderJails: new Set(["recidive"]),
       ignoreJails: new Set(),
       ignoreIps: new Set(),
       suppressShutdownFlush: true,

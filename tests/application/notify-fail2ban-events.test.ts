@@ -19,7 +19,7 @@ function build(overrides: Partial<ConstructorParameters<typeof NotifyFail2banEve
     messages: getMessages("es"),
     logger,
     chatId: "CHAT",
-    permanentJails: new Set(["recidive"]),
+    repeatOffenderJails: new Set(["recidive"]),
     ignoreJails: new Set(),
     ignoreIps: new Set(),
     suppressShutdownFlush: true,
@@ -54,9 +54,10 @@ describe("NotifyFail2banEventsUseCase", () => {
     });
   });
 
-  it("notifica un Ban de recidive como permanente", async () => {
+  it("notifica un Ban de recidive como reincidente", async () => {
     await ctx.useCase.handle({ kind: "line", raw: banLine("1.2.3.4", "recidive") });
-    expect(ctx.notifier.sent[0]?.text).toContain("permanentemente");
+    expect(ctx.notifier.sent[0]?.text).toContain("reincidente");
+    expect(ctx.notifier.sent[0]?.text).not.toContain("permanentemente");
     expect(ctx.counterStore.state).toEqual({
       daily: 0,
       permanent: 1,

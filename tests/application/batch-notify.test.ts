@@ -18,7 +18,7 @@ function buildBatch(overrides: Partial<Deps> = {}) {
     messages: getMessages("es"),
     logger,
     chatId: "CHAT",
-    permanentJails: new Set(["recidive"]),
+    repeatOffenderJails: new Set(["recidive"]),
     ignoreJails: new Set(),
     ignoreIps: new Set(),
     suppressShutdownFlush: true,
