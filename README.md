@@ -257,6 +257,8 @@ The counter is updated once per successfully sent summary with all its bans (sam
 - With `COUNTER_BACKEND=file`, the repeat-offender counter stored in the JSON file starts from zero (the old `permanent` key is not migrated).
 - With `COUNTER_BACKEND=postgres` nothing changes.
 
+---
+
 ## Troubleshooting
 
 - **It exits immediately with `Configuración inválida: ...`.** The message lists every missing or invalid variable, one per line. `TELEGRAM_CHAT_ID` is always required; `TELEGRAM_BOT_TOKEN` is required only for `TRANSPORT=direct`.

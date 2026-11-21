@@ -257,6 +257,8 @@ El contador se actualiza UNA vez por resumen enviado con éxito, con todos sus b
 - Con `COUNTER_BACKEND=file`, el contador de reincidentes guardado en el fichero JSON empieza de cero (la clave antigua `permanent` no se migra).
 - Con `COUNTER_BACKEND=postgres` no cambia nada.
 
+---
+
 ## Solución de problemas
 
 - **Sale de inmediato con `Configuración inválida: ...`.** El mensaje lista cada variable ausente o inválida, una por línea. `TELEGRAM_CHAT_ID` es siempre obligatoria; `TELEGRAM_BOT_TOKEN` solo lo es con `TRANSPORT=direct`.
